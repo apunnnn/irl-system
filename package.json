@@ -19,6 +19,7 @@
       "mediamtx.yml",
       "ffmpeg.exe"
     ],
+    
     "win": {
       "target": "nsis",
       "icon": "icon.ico"

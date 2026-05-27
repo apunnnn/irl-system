@@ -10,15 +10,12 @@ let mediamtxProcess;
 let ffmpegProcess;
 
 // ==========================================
-// 1. PENDETEKSI JALUR FILE (PATH) OTOMATIS
+// 1. PENDETEKSI JALUR FILE & FOLDER KERJA (.exe)
 // ==========================================
-const mediamtxPath = app.isPackaged 
-    ? path.join(process.resourcesPath, 'mediamtx.exe') 
-    : path.join(__dirname, 'mediamtx.exe');
+const workingDirectory = app.isPackaged ? process.resourcesPath : __dirname;
 
-const ffmpegPath = app.isPackaged 
-    ? path.join(process.resourcesPath, 'ffmpeg.exe') 
-    : path.join(__dirname, 'ffmpeg.exe');
+const mediamtxPath = path.join(workingDirectory, 'mediamtx.exe');
+const ffmpegPath = path.join(workingDirectory, 'ffmpeg.exe');
 
 // ==========================================
 // 2. FUNGSI MEMBUAT JENDELA APLIKASI
@@ -50,11 +47,10 @@ function createWindow() {
 }
 
 // ==========================================
-// 3. SIKLUS HIDUP APP (TIDAK ADA AUTO-START MESIN)
+// 3. SIKLUS HIDUP APP (TANPA AUTO-START MESIN)
 // ==========================================
 app.whenReady().then(() => {
     createWindow();
-    // MEDIA MTX TIDAK DINYALAKAN DI SINI LAGI
     autoUpdater.checkForUpdatesAndNotify(); 
 });
 
@@ -97,13 +93,15 @@ ipcMain.handle('verify-license', async (event, data) => {
 // 6. KONTROL MANUAL ENGINE & TRANSCODE
 // ==========================================
 ipcMain.on('start-core-engine', (event) => {
-    // 1. Bersihkan port yang mungkin nyangkut
+    // Sapu bersih port yang nyangkut dulu
     exec(`taskkill /IM mediamtx.exe /F`, () => {
-        // 2. Jalankan MediaMTX secara manual
         console.log("Menjalankan Core Engine (MediaMTX)...");
-        mediamtxProcess = exec(`"${mediamtxPath}"`, (err) => {
+        
+        // KUNCI FIX ERROR .EXE : Tambahkan { cwd: workingDirectory }
+        mediamtxProcess = exec(`"${mediamtxPath}"`, { cwd: workingDirectory }, (err) => {
             if (err) console.error("Gagal MediaMTX:", err);
         });
+        
         event.reply('core-status', true);
     });
 });
@@ -116,9 +114,9 @@ ipcMain.on('stop-core-engine', (event) => {
         ffmpegProcess = null;
     }
     
-    // Matikan paksa MediaMTX
+    // Matikan paksa MediaMTX dan FFmpeg
     exec(`taskkill /IM mediamtx.exe /F`);
-    exec(`taskkill /IM ffmpeg.exe /F`); // Sapu bersih sisa ffmpeg
+    exec(`taskkill /IM ffmpeg.exe /F`);
     mediamtxProcess = null;
     
     event.reply('core-status', false);
@@ -143,7 +141,9 @@ ipcMain.on('start-preview', (event) => {
         '-rtsp_transport', 'tcp',
         'rtsp://127.0.0.1:8554/preview'
     ];
-    ffmpegProcess = spawn(ffmpegPath, ffmpegArgs);
+    
+    // Pastikan FFmpeg juga memakai working directory yang sama
+    ffmpegProcess = spawn(ffmpegPath, ffmpegArgs, { cwd: workingDirectory });
 });
 
 ipcMain.on('stop-preview', (event) => {
