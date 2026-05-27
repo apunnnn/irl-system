@@ -10,105 +10,86 @@
             --accent-blue: #0077ff; --danger: #ff3366; --text: #e0e0e0;
             --text-muted: #666677; --border: #222230;
         }
-        body {
-            background: var(--bg); color: var(--text);
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-            margin: 0; height: 100vh; overflow: hidden;
-        }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; overflow: hidden; }
 
-        /* CUSTOM ALERT MODAL */
-        #custom-alert {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
-            z-index: 20000; display: flex; justify-content: center; align-items: center;
-            opacity: 1; visibility: visible; transition: all 0.3s ease;
-        }
-        #custom-alert.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-        .alert-box {
-            background: var(--panel); border: 1px solid var(--accent);
-            padding: 30px; border-radius: 12px; max-width: 380px; width: 100%; text-align: center;
-            box-shadow: 0 10px 40px rgba(0,255,204,0.2); 
-            transform: scale(1); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        #custom-alert.hidden .alert-box { transform: scale(0.8); }
-        .alert-box h3 { margin-top: 0; color: #fff; letter-spacing: 2px; text-transform: uppercase; }
-        .alert-box p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; margin-bottom: 25px; }
+        /* =========================================
+           1. CUSTOM ALERT & CONFIRM MODAL
+           ========================================= */
+        #custom-alert, #custom-confirm { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 20000; display: flex; justify-content: center; align-items: center; opacity: 1; visibility: visible; transition: all 0.3s ease; }
+        #custom-alert.hidden, #custom-confirm.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        
+        .alert-box, .confirm-box { background: var(--panel); padding: 35px; border-radius: 16px; max-width: 400px; width: 100%; text-align: center; transform: scale(1); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        #custom-alert.hidden .alert-box, #custom-confirm.hidden .confirm-box { transform: scale(0.8); }
+        
+        /* Alert Box Default */
+        .alert-box { border: 1px solid var(--accent); box-shadow: 0 10px 40px rgba(0,255,204,0.2); }
+        .alert-box h3 { margin-top: 0; color: #fff; letter-spacing: 2px; }
+        .alert-box p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px; line-height: 1.5; }
         .alert-box.error-mode { border-color: var(--danger); box-shadow: 0 10px 40px rgba(255,51,102,0.2); }
         .alert-box.error-mode h3 { color: var(--danger); }
         .alert-box.error-mode .btn-alert { background: transparent; border: 2px solid var(--danger); color: var(--danger); }
-        .alert-box.error-mode .btn-alert:hover { background: var(--danger); color: #fff; box-shadow: 0 5px 15px rgba(255,51,102,0.3); }
-        .btn-alert {
-            width: 100%; padding: 12px; background: var(--accent); color: #000;
-            border: 2px solid var(--accent); border-radius: 8px; font-weight: 800; font-size: 0.95rem;
-            cursor: pointer; transition: all 0.2s; letter-spacing: 2px; text-transform: uppercase;
-        }
-        .btn-alert:hover { background: #00e6b8; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,255,204,0.3); }
+        .btn-alert { width: 100%; padding: 12px; background: var(--accent); color: #000; border: 2px solid var(--accent); border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s; }
+        
+        /* Confirm Box (Untuk Reset) */
+        .confirm-box { border: 1px solid var(--danger); box-shadow: 0 15px 50px rgba(255, 51, 102, 0.25); }
+        .confirm-box h3 { margin-top: 0; color: var(--danger); letter-spacing: 2px; text-transform: uppercase; font-size: 1.2rem; }
+        .confirm-box p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 30px; }
+        .confirm-btn-group { display: flex; gap: 15px; }
+        .btn-cancel { flex: 1; padding: 12px; background: transparent; color: var(--text-muted); border: 2px solid #333; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-cancel:hover { background: #222; color: #fff; border-color: #555; }
+        .btn-danger { flex: 1; padding: 12px; background: var(--danger); color: #fff; border: 2px solid var(--danger); border-radius: 8px; font-weight: 800; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-danger:hover { background: #e60039; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 51, 102, 0.4); }
 
-        /* GERBANG LISENSI */
-        #license-screen {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(5, 5, 8, 0.98); backdrop-filter: blur(20px);
-            z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center;
-            transition: opacity 0.5s, visibility 0.5s;
-        }
+        /* =========================================
+           2. GERBANG LISENSI & SPLASH SCREEN
+           ========================================= */
+        #license-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(5, 5, 8, 0.98); backdrop-filter: blur(20px); z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s, visibility 0.5s; }
         #license-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-        .license-box {
-            background: var(--panel); padding: 40px; border-radius: 16px;
-            border: 1px solid #333; box-shadow: 0 0 40px rgba(0,0,0,0.8);
-            width: 100%; max-width: 420px; text-align: center;
-        }
-        .license-box h2 { color: #fff; margin-top: 0; margin-bottom: 10px; letter-spacing: 2px; }
+        .license-box { background: var(--panel); padding: 40px; border-radius: 16px; border: 1px solid #333; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 0 40px rgba(0,0,0,0.8); }
+        .license-box h2 { margin-top: 0; margin-bottom: 10px; color: #fff; letter-spacing: 2px; }
         .license-box p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 25px; line-height: 1.5; }
-        .license-input {
-            width: 100%; padding: 15px; background: #050508; border: 1px solid #333;
-            color: #fff; border-radius: 8px; font-family: 'Consolas', monospace;
-            font-size: 1.2rem; text-align: center; margin-bottom: 15px; box-sizing: border-box;
-            text-transform: uppercase; letter-spacing: 3px; font-weight: bold;
-        }
+        .license-input { width: 100%; padding: 15px; background: #050508; border: 1px solid #333; color: #fff; border-radius: 8px; font-family: monospace; font-size: 1.2rem; text-align: center; margin-bottom: 15px; box-sizing: border-box; text-transform: uppercase; letter-spacing: 3px; font-weight: bold; transition: all 0.3s; }
         .license-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 15px rgba(0,255,204,0.2); }
-        .license-input::placeholder { color: #333; font-weight: normal; }
-        .btn-activate {
-            width: 100%; padding: 15px; background: transparent; color: var(--accent);
-            border: 2px solid var(--accent); border-radius: 8px; font-weight: 800; font-size: 1rem;
-            cursor: pointer; transition: all 0.2s; letter-spacing: 2px; text-transform: uppercase; margin-top: 10px;
-        }
+        .btn-activate { width: 100%; padding: 15px; background: transparent; color: var(--accent); border: 2px solid var(--accent); border-radius: 8px; font-weight: 800; font-size: 1rem; cursor: pointer; text-transform: uppercase; margin-top: 10px; transition: all 0.3s; }
         .btn-activate:hover { background: var(--accent); color: #000; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,255,204,0.3); }
-        .btn-activate:disabled { background: transparent; border-color: #333; color: #666; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-activate:disabled { border-color: #333; color: #666; cursor: not-allowed; transform: none; box-shadow: none; }
 
-        /* SPLASH SCREEN */
-        #splash-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at center, #161622 0%, #050508 100%); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s; }
+        #splash-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at center, #161622 0%, #050508 100%); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.8s, visibility 0.8s; }
         #splash-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-        .brand-logo { font-size: 3.5rem; font-weight: 800; letter-spacing: 6px; color: #fff; margin-bottom: 5px; text-shadow: 0 0 30px rgba(0, 255, 204, 0.2); margin-top: 10px; }
+        .brand-logo { font-size: 3.5rem; font-weight: 800; letter-spacing: 6px; color: #fff; margin-bottom: 5px; margin-top: 10px; text-shadow: 0 0 30px rgba(0, 255, 204, 0.2); }
         .brand-logo span { color: var(--accent); }
-        .brand-sub { color: var(--text-muted); letter-spacing: 8px; font-size: 0.9rem; margin-bottom: 60px; text-transform: uppercase; }
-        .btn-start { padding: 18px 60px; font-size: 1.4rem; font-weight: 800; background: transparent; border: 2px solid var(--accent); color: var(--accent); border-radius: 50px; text-transform: uppercase; letter-spacing: 4px; cursor: pointer; box-shadow: 0 0 20px rgba(0, 255, 204, 0.15); transition: all 0.2s; }
-        .btn-start:hover { background: var(--accent); color: #000; box-shadow: 0 0 50px rgba(0, 255, 204, 0.5); transform: translateY(-3px); }
-        .btn-start:active { transform: translateY(2px) scale(0.95); }
+        .brand-sub { color: var(--text-muted); letter-spacing: 8px; font-size: 0.9rem; margin-bottom: 60px; }
+        .btn-start { padding: 18px 60px; font-size: 1.4rem; font-weight: 800; background: transparent; border: 2px solid var(--accent); color: var(--accent); border-radius: 50px; cursor: pointer; box-shadow: 0 0 20px rgba(0,255,204,0.15); transition: all 0.2s; letter-spacing: 4px; }
+        .btn-start:hover { background: var(--accent); color: #000; transform: translateY(-3px); box-shadow: 0 0 50px rgba(0, 255, 204, 0.5); }
+        
+        .btn-reset-splash { background: rgba(255, 51, 102, 0.05); border: 1px solid rgba(255, 51, 102, 0.3); color: var(--danger); margin-top: 40px; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: none; letter-spacing: 1px; padding: 10px 25px; border-radius: 50px; transition: all 0.3s; }
+        .btn-reset-splash:hover { background: var(--danger); color: #fff; box-shadow: 0 5px 20px rgba(255, 51, 102, 0.4); transform: translateY(-2px); border-color: var(--danger); }
 
-        /* MAIN APP CONTAINER */
+        /* =========================================
+           3. MAIN UI & DASHBOARD
+           ========================================= */
         #app-container { display: flex; width: 100%; height: 100%; }
-        .sidebar { width: 380px; background: var(--panel); padding: 25px 20px; display: flex; flex-direction: column; border-right: 1px solid var(--border); box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5); overflow-y: auto; z-index: 10; }
+        .sidebar { width: 380px; background: var(--panel); padding: 25px 20px; display: flex; flex-direction: column; border-right: 1px solid var(--border); overflow-y: auto; z-index: 10; box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5); }
         .sidebar::-webkit-scrollbar, .tutorial-overlay::-webkit-scrollbar { width: 6px; }
         .sidebar::-webkit-scrollbar-track, .tutorial-overlay::-webkit-scrollbar-track { background: transparent; }
         .sidebar::-webkit-scrollbar-thumb, .tutorial-overlay::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
         .sidebar::-webkit-scrollbar-thumb:hover, .tutorial-overlay::-webkit-scrollbar-thumb:hover { background: var(--accent); }
-        .header { font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 25px; letter-spacing: 1.5px; border-left: 4px solid var(--accent); padding-left: 12px; flex-shrink: 0; }
-        .group-title { font-size: 0.75rem; font-weight: 800; letter-spacing: 1.5px; margin-bottom: 10px; padding-left: 5px; flex-shrink: 0; }
-        .title-hp { color: var(--accent); }
-        .title-obs { color: var(--accent-blue); }
+        .header { font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 25px; border-left: 4px solid var(--accent); padding-left: 12px; flex-shrink: 0; letter-spacing: 1.5px; }
+        .group-title { font-size: 0.75rem; font-weight: 800; margin-bottom: 10px; padding-left: 5px; flex-shrink: 0; letter-spacing: 1.5px; }
+        .title-hp { color: var(--accent); } .title-obs { color: var(--accent-blue); }
         .info-box { background: #181824; padding: 15px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border); flex-shrink: 0; }
-        .info-item { margin-bottom: 14px; }
-        .info-item:last-child { margin-bottom: 0; }
-        .info-label { color: var(--text-muted); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .info-item { margin-bottom: 14px; } .info-item:last-child { margin-bottom: 0; }
+        .info-label { color: var(--text-muted); font-size: 0.7rem; font-weight: 700; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
         .info-value-wrapper { position: relative; display: flex; align-items: center; }
-        .info-value { width: 100%; color: #fff; font-family: 'Consolas', monospace; font-size: 0.8rem; word-break: break-all; background: #0f0f15; padding: 10px 55px 10px 12px; border-radius: 6px; border: 1px solid #1f1f2e; }
-        .info-value.highlight { font-weight: 700; font-size: 0.95rem; border-left: 3px solid #fff; }
-        .info-value.highlight-accent { color: var(--accent); font-weight: 700; border-left: 3px solid var(--accent); }
+        .info-value { width: 100%; color: #fff; font-family: monospace; font-size: 0.8rem; background: #0f0f15; padding: 10px 55px 10px 12px; border-radius: 6px; border: 1px solid #1f1f2e; word-break: break-all; }
+        .info-value.highlight { font-weight: 700; border-left: 3px solid #fff; font-size: 0.95rem; }
+        .info-value.highlight-accent { color: var(--accent); border-left: 3px solid var(--accent); font-weight: 700; }
         .info-value.internal-url { color: #ccc; border-left: 3px solid var(--accent-blue); }
-        .copy-btn { position: absolute; right: 6px; background: rgba(255, 255, 255, 0.05); color: #888; border: 1px solid #333; border-radius: 4px; padding: 4px 8px; font-size: 0.6rem; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+        .copy-btn { position: absolute; right: 6px; background: rgba(255,255,255,0.05); color: #888; border: 1px solid #333; border-radius: 4px; padding: 4px 8px; font-size: 0.6rem; cursor: pointer; transition: all 0.2s; font-weight: bold; }
         .hp-box .copy-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
         .obs-box .copy-btn:hover { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
         .copy-btn:active { transform: scale(0.85); }
+        
         .action-buttons { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
         button.action-btn { width: 100%; padding: 12px; background: transparent; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.85rem; transition: all 0.2s; }
         button.action-btn:active { transform: scale(0.96); }
@@ -122,79 +103,100 @@
         .btn-stop-preview.active:hover { background: rgba(255, 51, 102, 0.1); }
         .btn-tutorial { border: 1px solid #ffcc00; color: #ffcc00; margin-top: 5px; }
         .btn-tutorial:hover { background: rgba(255, 204, 0, 0.1); }
-        .footer { margin-top: auto; text-align: center; font-size: 0.65rem; color: var(--text-muted); letter-spacing: 2px; font-weight: 600; border-top: 1px solid var(--border); padding-top: 15px; padding-bottom: 5px; cursor: pointer; transition: all 0.3s; flex-shrink: 0; }
+
+        .footer { margin-top: auto; text-align: center; font-size: 0.65rem; color: var(--text-muted); padding-top: 15px; padding-bottom: 5px; cursor: pointer; transition: all 0.3s; letter-spacing: 2px; font-weight: 600; border-top: 1px solid var(--border); }
         .footer:hover { color: var(--accent); text-shadow: 0 0 10px rgba(0, 255, 204, 0.4); }
         
+        /* =========================================
+           4. VIDEO PLAYER & TELEMETRY
+           ========================================= */
         .main-content { flex-grow: 1; display: flex; flex-direction: column; padding: 25px; background: #050508; position: relative; gap: 20px; }
-        .video-container { width: 100%; flex-grow: 1; border-radius: 16px; overflow: hidden; position: relative; background: #0d0d12; display: flex; justify-content: center; align-items: center; border: 1px solid var(--border); box-shadow: inset 0 0 40px rgba(0,0,0,0.8); perspective: 1200px; }
-        iframe { width: 100%; height: 100%; border: none; background: #000; position: absolute; top: 0; left: 0; transition: opacity 0.3s ease; }
-        #waitingText { position: absolute; color: #3a3a4a; font-weight: 600; font-size: 1.1rem; z-index: 2; transition: opacity 0.3s ease; }
+        .video-container { width: 100%; flex-grow: 1; border-radius: 16px; overflow: hidden; position: relative; background: #0d0d12; display: flex; justify-content: center; align-items: center; border: 1px solid var(--border); box-shadow: inset 0 0 40px rgba(0,0,0,0.8); perspective: 1200px; } /* Tambah perspective untuk efek 3D */
+        iframe { width: 100%; height: 100%; border: none; background: #000; position: absolute; top: 0; left: 0; transition: opacity 0.3s; }
+        #waitingText { position: absolute; color: #3a3a4a; font-weight: 600; font-size: 1.1rem; z-index: 2; transition: opacity 0.3s; }
         .network-panel { width: 100%; height: 160px; background: #0d0d12; border-radius: 12px; border: 1px solid var(--border); padding: 15px 20px; display: flex; flex-direction: column; flex-shrink: 0; position: relative; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
-        .network-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; }
-        .network-header span.status { color: #ff3366; transition: color 0.3s; }
-        .network-header span.status.standby { color: #ffcc00; }
+        .network-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-bottom: 10px; letter-spacing: 1.5px; }
+        .network-header span.status { color: #ff3366; transition: color 0.3s; } 
+        .network-header span.status.standby { color: #ffcc00; } 
         .network-header span.status.active { color: var(--accent); }
-        .network-header span.bitrate-text { font-family: 'Consolas', monospace; color: #fff; font-size: 0.9rem; }
+        .network-header span.bitrate-text { font-family: monospace; color: #fff; font-size: 0.9rem; }
         .canvas-container { flex-grow: 1; position: relative; width: 100%; height: 100%; }
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
-        .tutorial-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 11, 15, 0.95); backdrop-filter: blur(15px); z-index: 10; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        
+        /* =========================================
+           5. TUTORIAL / BUKU PANDUAN DENGAN ANIMASI 3D
+           ========================================= */
+        .tutorial-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11,11,15,0.95); backdrop-filter: blur(15px); z-index: 10; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s; }
         .tutorial-overlay.active { opacity: 1; visibility: visible; }
-        .tutorial-content { max-width: 800px; width: 100%; padding-bottom: 40px; transform-origin: top center; opacity: 0; }
-        @keyframes patahMasuk { 0% { transform: rotateX(-90deg); opacity: 0; } 40% { transform: rotateX(15deg); opacity: 1; } 65% { transform: rotateX(-8deg); } 85% { transform: rotateX(3deg); } 100% { transform: rotateX(0deg); opacity: 1; } }
+        
+        /* KUNCI REVISI: Mengembalikan efek melipat 3D elastis */
+        .tutorial-content { max-width: 850px; width: 100%; padding-bottom: 60px; transform-origin: top center; opacity: 0; }
+        @keyframes patahMasuk { 
+            0% { transform: rotateX(-90deg); opacity: 0; } 
+            40% { transform: rotateX(15deg); opacity: 1; } 
+            65% { transform: rotateX(-8deg); } 
+            85% { transform: rotateX(3deg); } 
+            100% { transform: rotateX(0deg); opacity: 1; } 
+        }
         .tutorial-overlay.active .tutorial-content { animation: patahMasuk 0.7s ease-out forwards; }
+
         .tutorial-overlay h1 { color: #ffcc00; margin-top: 0; font-size: 2rem; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 30px; text-align: center; }
-        .tutorial-step { background: #181824; padding: 25px; border-radius: 12px; border-left: 4px solid var(--accent); margin-bottom: 20px; }
-        .tutorial-step.cam-step { border-left-color: #ff3366; }
-        .tutorial-step.app-step { border-left-color: #ffcc00; }
-        .tutorial-step.obs-step { border-left-color: var(--accent-blue); }
-        .tutorial-step h3 { margin: 0 0 15px 0; font-size: 1.2rem; color: #fff; }
-        .tutorial-step ul { margin: 0; padding-left: 20px; color: #aaa; font-size: 0.95rem; line-height: 1.7; }
-        .tutorial-step li { margin-bottom: 8px; }
-        .tutorial-step code { background: #000; color: #fff; padding: 3px 8px; border-radius: 4px; font-family: monospace; font-size: 0.85rem;}
-        .highlight-text { color: var(--accent); font-weight: bold; }
+        .tutorial-step { background: #181824; padding: 25px; border-radius: 12px; border-left: 4px solid var(--accent); margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .tutorial-step.red { border-left-color: var(--danger); }
+        .tutorial-step.blue { border-left-color: var(--accent-blue); }
+        .tutorial-step.yellow { border-left-color: #ffcc00; }
+        .tutorial-step h3 { margin: 0 0 15px 0; font-size: 1.2rem; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .tutorial-step ul { margin: 0; padding-left: 20px; color: #bbb; font-size: 0.95rem; line-height: 1.7; }
+        .tutorial-step li { margin-bottom: 10px; }
+        .tutorial-step code { background: #000; color: #fff; padding: 4px 8px; border-radius: 4px; font-family: monospace; border: 1px solid #333; font-size: 0.85rem;}
+        .highlight-text { color: var(--accent); font-weight: bold; } 
         .highlight-blue { color: var(--accent-blue); font-weight: bold; }
+        .highlight-red { color: var(--danger); font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="custom-alert" class="hidden">
         <div class="alert-box" id="alertBox">
-            <h3 id="alertTitle">Pesan Sistem</h3>
-            <p id="alertMessage">Deskripsi pesan akan muncul di sini.</p>
+            <h3 id="alertTitle">Pesan</h3>
+            <p id="alertMessage">Pesan</p>
             <button id="alertBtn" class="btn-alert">OK</button>
+        </div>
+    </div>
+
+    <div id="custom-confirm" class="hidden">
+        <div class="confirm-box">
+            <h3>Peringatan Sistem</h3>
+            <p>Apakah Anda yakin ingin <b>menghapus lisensi</b> dari perangkat ini? Aplikasi akan kembali terkunci dan membutuhkan aktivasi ulang.</p>
+            <div class="confirm-btn-group">
+                <button id="btnCancelReset" class="btn-cancel">Batal</button>
+                <button id="btnConfirmReset" class="btn-danger">Ya, Reset</button>
+            </div>
         </div>
     </div>
 
     <div id="license-screen">
         <div class="license-box">
             <h2>AKTIVASI SISTEM</h2>
-            <p>Masukkan Username TikTok dan Kode Lisensi untuk mendaftarkan perangkat ini.</p>
-            
-            <input type="text" id="tiktokInput" class="license-input" placeholder="masukan tanpa @" autocomplete="off" style="font-size: 1rem; margin-bottom: 5px; text-transform: lowercase; letter-spacing: 2px;">
-            <div style="color: #ff3366; font-size: 0.75rem; font-weight: bold; margin-bottom: 15px; text-align: left; padding-left: 5px;">*Tulis Username saja, JANGAN pakai tanda @</div>
-            
-            <input type="text" id="licenseKeyInput" class="license-input" placeholder="KB-8F9Z-2X9M-Q1PW" autocomplete="off">
-            
+            <p>Masukkan Username TikTok dan Kode Lisensi.</p>
+            <input type="text" id="tiktokInput" class="license-input" placeholder="username" autocomplete="off" style="text-transform: lowercase;">
+            <div style="color: #ff3366; font-size: 0.75rem; font-weight: bold; margin-bottom: 15px; text-align: left;">*Tulis Username saja, JANGAN pakai tanda @</div>
+            <input type="text" id="licenseKeyInput" class="license-input" placeholder="KB-XXXX-XXXX" autocomplete="off">
             <button id="activateBtn" class="btn-activate">Verifikasi Lisensi</button>
         </div>
     </div>
 
     <div id="splash-screen">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="120" height="120" style="margin-bottom: 15px; filter: drop-shadow(0px 0px 15px rgba(0,255,204,0.4));">
-            <defs>
-                <linearGradient id="pinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#00ffcc" />
-                    <stop offset="100%" stop-color="#0077ff" />
-                </linearGradient>
-            </defs>
-            <path d="M50 95 C 50 95, 20 60, 20 40 A 30 30 0 1 1 80 40 C 80 60, 50 95, 50 95 Z" fill="none" stroke="url(#pinGrad)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
-            <path d="M35 35 A 20 20 0 0 1 65 35" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" />
-            <path d="M42 45 A 10 10 0 0 1 58 45" fill="none" stroke="#00ffcc" stroke-width="4" stroke-linecap="round" />
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="120" height="120" style="margin-bottom: 15px;">
+            <path d="M50 95 C 50 95, 20 60, 20 40 A 30 30 0 1 1 80 40 C 80 60, 50 95, 50 95 Z" fill="none" stroke="#00ffcc" stroke-width="6" />
+            <path d="M35 35 A 20 20 0 0 1 65 35" fill="none" stroke="#fff" stroke-width="4" />
             <circle cx="50" cy="55" r="4" fill="#fff" />
         </svg>
         <div class="brand-logo">IRL SYSTEM <span>V1</span></div>
         <div class="brand-sub">POWERED BY KAMAR BROADCAST</div>
         <button class="btn-start" id="enterBtn">START</button>
+        
+        <button id="resetLicenseBtn" class="btn-reset-splash">🔑 Reset Lisensi Perangkat</button>
     </div>
 
     <div id="app-container">
@@ -244,7 +246,7 @@
             </div>
             
             <div class="action-buttons">
-                <button id="coreToggleBtn" class="action-btn btn-core-toggle">🔴 Stop Core Engine</button>
+                <button id="coreToggleBtn" class="action-btn btn-core-toggle stopped">🟢 Start Core Engine</button>
                 <div class="preview-btn-group">
                     <button id="reloadBtn" class="action-btn btn-reload">🔄 Start Preview</button>
                     <button id="stopPreviewBtn" class="action-btn btn-stop-preview" disabled>⏹️ Stop</button>
@@ -253,62 +255,91 @@
             </div>
             
             <div style="flex-grow: 1; min-height: 20px;"></div>
-            <div class="footer" id="tiktokLink" title="Buka TikTok Kamar Broadcast">POWERED BY KAMAR BROADCAST</div>
+            <div class="footer" id="tiktokLink">POWERED BY KAMAR BROADCAST</div>
         </div>
         
         <div class="main-content">
             <div class="video-container">
                 <div id="waitingText">Menunggu Stream Proxy...</div>
                 <iframe id="previewIframe" src="about:blank" allow="autoplay; fullscreen"></iframe>
+                
                 <div id="tutorialOverlay" class="tutorial-overlay">
                     <div class="tutorial-content">
-                        <h1>Panduan Setup IRL Stream</h1>
+                        <h1>📖 BUKU PANDUAN IRL SYSTEM V1</h1>
+                        
                         <div class="tutorial-step">
-                            <h3>Langkah 1: Setup Jaringan (Wajib)</h3>
+                            <h3>1️⃣ Persiapan Jaringan (Tailscale)</h3>
                             <ul>
-                                <li>Download aplikasi <strong>Tailscale</strong> di HP dan Laptop.</li>
-                                <li>Aktifkan Tailscale di HP. Pastikan <span class="highlight-text">VPN IP</span> terbaca.</li>
+                                <li>Pastikan aplikasi <strong>Tailscale</strong> sudah terinstal dan dalam status <i>Active/Connected</i> di HP dan Laptop Anda.</li>
+                                <li>Cek kolom <span class="highlight-text">VPN IP (Tailscale)</span> di aplikasi ini. Pastikan angkanya berawalan <code>100.x.x.x</code>. Jika tulisannya "Tailscale Mati", periksa kembali koneksi VPN di laptop Anda.</li>
                             </ul>
                         </div>
-                        <div style="font-size: 1.1rem; font-weight: bold; color: #ff3366; text-align: center; margin: 30px 0 20px 0; letter-spacing: 2px;">--- PILIH METODE KAMERA ---</div>
-                        <div class="tutorial-step cam-step">
-                            <h3>Pilihan A: Kamera Eksternal (USB Camera Pro)</h3>
+
+                        <div class="tutorial-step yellow">
+                            <h3>2️⃣ Menyalakan Server (Core Engine)</h3>
                             <ul>
-                                <li>Hubungkan Kamera Fisik ke HP via OTG. Buka <strong>USB Camera Pro</strong>.</li>
-                                <li>Pengaturan &gt; Stream Settings. Type: <strong>RTMP/RTSP Server</strong>.</li>
-                                <li>Masukkan <strong>URL</strong> dan <strong>Stream ID</strong>. Tekan START STREAM.</li>
+                                <li>Klik tombol <span class="highlight-text">🟢 Start Core Engine</span> pada panel kiri.</li>
+                                <li>Tombol akan berubah menjadi merah (<span class="highlight-red">🔴 Stop Core Engine</span>) dan status jaringan di bawah layar akan berubah menjadi <strong style="color: #ffcc00">• STANDBY</strong>.</li>
+                                <li>Ini artinya server PC Anda sudah siap menerima pancaran video dari lapangan.</li>
                             </ul>
                         </div>
-                        <div class="tutorial-step app-step">
-                            <h3>Pilihan B: Kamera Bawaan HP (IRL Pro)</h3>
+                        
+                        <div class="tutorial-step red">
+                            <h3>3️⃣ Setting Aplikasi Kamera di HP</h3>
+                            <p style="margin-top: 0; color: #bbb; margin-left: 20px; font-size: 0.9rem;">Pilih salah satu aplikasi di bawah ini sesuai perangkat Anda:</p>
                             <ul>
-                                <li>Buka <strong>IRL Pro</strong>. Settings > Video, Bitrate 2500-4000 kbps, Codec HEVC.</li>
-                                <li>Menu <strong>Connections</strong>. Masukkan URL dan Stream ID. Tekan LIVE.</li>
+                                <li><strong>Bagi Pengguna IRL Pro (Kamera Bawaan HP):</strong>
+                                    <ul>
+                                        <li>Buka menu <i>Settings &gt; Video</i>. Atur Bitrate ke <code>2500 - 4500 kbps</code>, and Video Codec <strong>WAJIB</strong> menggunakan <code>HEVC / H.265</code>.</li>
+                                        <li>Masuk ke menu <i>Connections</i>, tambahkan koneksi baru jenis SRT.</li>
+                                        <li>Paste <span class="highlight-text">SRT Server URL</span> dan <span class="highlight-text">SRT Stream ID</span> dari aplikasi ini ke kolom yang tersedia. Tekan tombol <strong>LIVE</strong>.</li>
+                                    </ul>
+                                </li>
+                                <li style="margin-top: 15px;"><strong>Bagi Pengguna USB Camera Pro (Kamera Eksternal):</strong>
+                                    <ul>
+                                        <li>Colok kamera via OTG. Buka menu pengaturan (titik tiga) &gt; <i>Stream Settings</i>.</li>
+                                        <li>Ubah <i>Type</i> menjadi <strong>RTMP/RTSP Server</strong>.</li>
+                                        <li>Masukkan URL dan Stream ID. Centang <i>Background Audio</i>. Tekan <strong>START STREAM</strong>.</li>
+                                    </ul>
+                                </li>
                             </ul>
                         </div>
-                        <div style="font-size: 1.1rem; font-weight: bold; color: var(--accent-blue); text-align: center; margin: 30px 0 20px 0; letter-spacing: 2px;">--- KONTROL & OBS STUDIO ---</div>
-                        <div class="tutorial-step" style="border-left-color: var(--accent);">
-                            <h3>Fitur Dashboard Kontrol</h3>
+
+                        <div class="tutorial-step">
+                            <h3>4️⃣ Monitoring (Preview Video)</h3>
                             <ul>
-                                <li><strong>Core Engine:</strong> Pastikan selalu menyala (tombol merah/hijau).</li>
-                                <li><strong>Start/Stop Preview:</strong> Pantau video dan grafik jaringan.</li>
-                                <li><strong>Sensor Otomatis:</strong> Otomatis memutus <em>preview</em> jika HP offline.</li>
+                                <li>Setelah HP melakukan <i>live</i>, tunggu sekitar 3 detik, lalu klik tombol <span class="highlight-blue">🔄 Start Preview</span>.</li>
+                                <li>Grafik garis di bawah layar akan mulai melompat sesuai dengan kestabilan sinyal di lapangan, dan video akan muncul di layar utama.</li>
                             </ul>
                         </div>
-                        <div class="tutorial-step obs-step">
-                            <h3>Langkah Akhir: Menarik Video ke OBS</h3>
+
+                        <div class="tutorial-step blue">
+                            <h3>5️⃣ Integrasi ke OBS Studio</h3>
                             <ul>
-                                <li>Di OBS Studio, tambahkan <strong>Media Source</strong>, matikan <i>Local File</i>.</li>
-                                <li>Paste link <span class="highlight-blue">Media Source (SRT)</span>. Ketik <code>mpegts</code> di Input Format.</li>
+                                <li>Buka OBS Studio. Tambahkan <i>Source</i> baru berjenis <strong>Media Source</strong>.</li>
+                                <li>Hilangkan centang pada opsi <code>Local File</code>.</li>
+                                <li>Di kolom <strong>Input</strong>, paste link dari <span class="highlight-blue">Media Source (SRT)</span>.</li>
+                                <li>Di kolom <strong>Input Format</strong> (tepat di bawahnya), ketik: <code>mpegts</code></li>
+                                <li>Klik OK. Video mentah HEVC kualitas maksimal dari HP akan langsung tersedot ke dalam OBS Anda!</li>
                             </ul>
                         </div>
+
+                        <div class="tutorial-step" style="border-left-color: #555;">
+                            <h3 style="color: #aaa;">💡 Tips & Troubleshooting</h3>
+                            <ul style="color: #888;">
+                                <li><strong>Layar Preview Blank Hitam?</strong> Tekan tombol <span style="color: #ff3366">⏹️ Stop</span>, tunggu 2 detik, lalu tekan <span class="highlight-blue">🔄 Start Preview</span> kembali.</li>
+                                <li><strong>Delay Tinggi di OBS?</strong> Buka properties Media Source di OBS, turunkan <i>Network Buffering</i> menjadi 1MB atau 2MB.</li>
+                                <li><strong>Lupa Menyalakan VPN?</strong> Matikan Core Engine, nyalakan Tailscale, lalu nyalakan Core Engine lagi.</li>
+                            </ul>
+                        </div>
+
                     </div>
                 </div>
             </div>
 
             <div class="network-panel">
                 <div class="network-header">
-                    <div>SRT NETWORK TELEMETRY <span class="status standby" id="netStatus">• STANDBY</span></div>
+                    <div>SRT NETWORK TELEMETRY <span class="status" id="netStatus">• OFFLINE</span></div>
                     <span class="bitrate-text" id="bitrateText">0.00 kbps</span>
                 </div>
                 <div class="canvas-container" id="canvasContainer">
@@ -319,139 +350,188 @@
     </div>
 
     <script>
-        const { ipcRenderer, shell, clipboard } = require('electron');
+        const { ipcRenderer, clipboard, shell } = require('electron');
+        const os = require('os');
 
-        // CUSTOM ALERT
+        // ==========================================
+        // 1. KONTROL MODAL ALERT & CONFIRM
+        // ==========================================
         function showCustomAlert(title, message, isSuccess, callback) {
             const overlay = document.getElementById('custom-alert');
             const box = document.getElementById('alertBox');
-            const titleEl = document.getElementById('alertTitle');
-            const msgEl = document.getElementById('alertMessage');
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertMessage').innerText = message;
             const btnEl = document.getElementById('alertBtn');
-
-            titleEl.innerText = title;
-            msgEl.innerText = message;
-
-            if (isSuccess) {
-                box.classList.remove('error-mode');
-                btnEl.innerText = "Mulai Aplikasi";
-            } else {
-                box.classList.add('error-mode');
-                btnEl.innerText = "Coba Lagi";
-            }
+            if (isSuccess) { box.classList.remove('error-mode'); btnEl.innerText = "Lanjut"; } 
+            else { box.classList.add('error-mode'); btnEl.innerText = "Coba Lagi"; }
             overlay.classList.remove('hidden');
             btnEl.onclick = () => { overlay.classList.add('hidden'); if (callback) callback(); };
         }
 
-        // LISENSI HWID & PENYIMPANAN LOKAL
-        const activateBtn = document.getElementById('activateBtn');
-        const licenseInput = document.getElementById('licenseKeyInput');
-        const tiktokInput = document.getElementById('tiktokInput');
-        const licenseScreen = document.getElementById('license-screen');
-
-        if (localStorage.getItem('kb_license_active') === 'true') {
-            licenseScreen.classList.add('hidden'); 
+        function showCustomConfirm(onConfirmCallback) {
+            const overlay = document.getElementById('custom-confirm');
+            overlay.classList.remove('hidden');
+            
+            const btnCancel = document.getElementById('btnCancelReset');
+            const btnConfirm = document.getElementById('btnConfirmReset');
+            
+            const newBtnCancel = btnCancel.cloneNode(true);
+            const newBtnConfirm = btnConfirm.cloneNode(true);
+            btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
+            btnConfirm.parentNode.replaceChild(newBtnConfirm, btnConfirm);
+            
+            newBtnCancel.onclick = () => { overlay.classList.add('hidden'); };
+            newBtnConfirm.onclick = () => { overlay.classList.add('hidden'); onConfirmCallback(); };
         }
 
-        activateBtn.addEventListener('click', async () => {
-            const key = licenseInput.value.trim().toUpperCase();
-            
-            // Menggunakan .toLowerCase() agar username diproses sebagai huruf kecil murni di database
-            let tiktok = tiktokInput.value.trim().toLowerCase();
+        // ==========================================
+        // 2. VERIFIKASI & RESET LISENSI
+        // ==========================================
+        const licenseScreen = document.getElementById('license-screen');
+        if (localStorage.getItem('kb_license_active') === 'true') { licenseScreen.classList.add('hidden'); }
 
-            if (tiktok.startsWith('@')) {
-                tiktok = tiktok.substring(1);
-            }
+        document.getElementById('activateBtn').addEventListener('click', async () => {
+            const key = document.getElementById('licenseKeyInput').value.trim().toUpperCase();
+            let tiktok = document.getElementById('tiktokInput').value.trim().toLowerCase();
+            if (tiktok.startsWith('@')) tiktok = tiktok.substring(1);
+            if (!key || !tiktok) return showCustomAlert("Gagal", "Username dan Kode tidak boleh kosong!", false);
 
-            if (!key || !tiktok) {
-                showCustomAlert("Aktivasi Gagal", "Username TikTok dan Kode Lisensi tidak boleh kosong!", false);
-                return;
-            }
-
-            activateBtn.innerText = "Memverifikasi...";
-            activateBtn.disabled = true;
-
-            const result = await ipcRenderer.invoke('verify-license', { licenseKey: key, tiktokUser: tiktok });
-
-            if (result.success) {
-                localStorage.setItem('kb_license_active', 'true');
-                showCustomAlert("Aktivasi Berhasil", "Perangkat ini telah didaftarkan secara permanen. Selamat datang di IRL System V1.", true, () => {
-                    licenseScreen.classList.add('hidden');
-                });
-            } else {
-                showCustomAlert("Aktivasi Gagal", result.message, false, () => {
-                    activateBtn.innerText = "Verifikasi Lisensi";
-                    activateBtn.disabled = false;
+            document.getElementById('activateBtn').innerText = "Memverifikasi...";
+            document.getElementById('activateBtn').disabled = true;
+            try {
+                const result = await ipcRenderer.invoke('verify-license', { licenseKey: key, tiktokUser: tiktok });
+                if (result.success) {
+                    localStorage.setItem('kb_license_active', 'true');
+                    showCustomAlert("Berhasil", "Aktivasi berhasil!", true, () => licenseScreen.classList.add('hidden'));
+                } else {
+                    showCustomAlert("Gagal", result.message, false, () => {
+                        document.getElementById('activateBtn').innerText = "Verifikasi Lisensi";
+                        document.getElementById('activateBtn').disabled = false;
+                    });
+                }
+            } catch (err) {
+                showCustomAlert("Gagal", "Terjadi kesalahan server.", false, () => {
+                    document.getElementById('activateBtn').disabled = false;
+                    document.getElementById('activateBtn').innerText = "Verifikasi Lisensi";
                 });
             }
         });
 
-        // KONTROL APLIKASI UTAMA
+        document.getElementById('resetLicenseBtn').addEventListener('click', () => {
+            showCustomConfirm(() => {
+                localStorage.removeItem('kb_license_active');
+                location.reload();
+            });
+        });
+
+        // ==========================================
+        // 3. LOGIKA APLIKASI UTAMA
+        // ==========================================
         let isReceivingStream = false;
-        let isEngineActive = true;
+        let isEngineActive = false; 
 
         document.getElementById('enterBtn').addEventListener('click', () => {
             document.getElementById('splash-screen').classList.add('hidden'); resizeCanvas();
         });
 
-        document.querySelectorAll('.copy-btn').forEach(button => {
-            button.addEventListener('click', () => {
-                const targetId = button.getAttribute('data-target');
-                clipboard.writeText(document.getElementById(targetId).innerText);
-                const orig = button.innerText; button.innerText = "COPIED!";
-                setTimeout(() => { button.innerText = orig; }, 2000);
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                clipboard.writeText(document.getElementById(btn.getAttribute('data-target')).innerText);
+                const orig = btn.innerText; btn.innerText = "COPIED!"; setTimeout(() => btn.innerText = orig, 2000);
             });
         });
+        document.getElementById('tiktokLink').addEventListener('click', () => shell.openExternal('https://www.tiktok.com/@kamar_broadcast')); 
 
-        document.getElementById('tiktokLink').addEventListener('click', () => {
-            shell.openExternal('https://www.tiktok.com/@kamar_broadcast'); 
-        });
+        const tsIp = (() => {
+            for (const name in os.networkInterfaces()) for (const iface of os.networkInterfaces()[name]) 
+                if (iface.family === 'IPv4' && iface.address.startsWith('100.')) return iface.address;
+            return '127.0.0.1';
+        })();
+        document.getElementById('ipAddress').innerText = tsIp !== '127.0.0.1' ? tsIp : "Tailscale Mati!";
+        document.getElementById('srtUrl').innerText = `srt://${tsIp}:8890`;
+        document.getElementById('srtStreamId').innerText = `#!::r=irl,m=publish`;
 
+        // ==========================================
+        // 4. CORE ENGINE & PREVIEW KONTROL (MANUAL)
+        // ==========================================
         const coreBtn = document.getElementById('coreToggleBtn');
+        const reloadBtn = document.getElementById('reloadBtn');
+        const stopPreviewBtn = document.getElementById('stopPreviewBtn');
+        const netStatus = document.getElementById('netStatus');
+
         coreBtn.addEventListener('click', () => {
-            if (isEngineActive) ipcRenderer.send('stop-core-engine'); else ipcRenderer.send('start-core-engine');
+            if (isEngineActive) ipcRenderer.send('stop-core-engine'); 
+            else ipcRenderer.send('start-core-engine');
         });
 
         ipcRenderer.on('core-status', (event, active) => {
             isEngineActive = active;
-            const netStatus = document.getElementById('netStatus');
             if (isEngineActive) {
                 coreBtn.innerText = "🔴 Stop Core Engine"; coreBtn.className = "action-btn btn-core-toggle";
                 netStatus.innerText = "• STANDBY"; netStatus.className = "status standby";
             } else {
                 coreBtn.innerText = "🟢 Start Core Engine"; coreBtn.className = "action-btn btn-core-toggle stopped";
-                netStatus.innerText = "• OFFLINE"; netStatus.className = "status"; triggerStopPreview();
+                netStatus.innerText = "• OFFLINE"; netStatus.className = "status"; 
+                triggerStopPreview();
             }
         });
 
-        const reloadBtn = document.getElementById('reloadBtn');
-        const stopPreviewBtn = document.getElementById('stopPreviewBtn');
-
         reloadBtn.addEventListener('click', () => {
-            if (!isEngineActive) { showCustomAlert("Peringatan", "Nyalakan Core Engine terlebih dahulu sebelum memulai Preview!", false); return; }
+            if (!isEngineActive) return showCustomAlert("Peringatan", "Nyalakan Core Engine terlebih dahulu!", false);
             reloadBtn.innerText = "⏳ Memproses...";
-            document.getElementById('tutorialOverlay').classList.remove('active'); document.getElementById('previewIframe').style.opacity = '1';
-            document.getElementById('tutorialBtn').innerText = "📖 Buka Panduan Penggunaan"; isTutorialOpen = false;
-            isReceivingStream = true; document.getElementById('netStatus').innerText = "• RECEIVING STREAM"; document.getElementById('netStatus').className = "status active";
-            stopPreviewBtn.disabled = false; stopPreviewBtn.className = "action-btn btn-stop-preview active";
+            document.getElementById('tutorialOverlay').classList.remove('active'); 
+            document.getElementById('previewIframe').style.opacity = '1';
+            
             ipcRenderer.send('start-preview');
-            setTimeout(() => { document.getElementById('waitingText').style.opacity = '0'; document.getElementById('previewIframe').src = "http://127.0.0.1:8889/irl_preview/"; reloadBtn.innerText = "🔄 Reload Preview"; }, 3000);
+            setTimeout(() => { 
+                document.getElementById('waitingText').style.opacity = '0'; 
+                document.getElementById('previewIframe').src = "http://127.0.0.1:8889/preview/"; 
+                reloadBtn.innerText = "🔄 Reload Preview"; 
+                isReceivingStream = true; 
+                netStatus.innerText = "• RECEIVING STREAM"; netStatus.className = "status active";
+                stopPreviewBtn.disabled = false; stopPreviewBtn.className = "action-btn btn-stop-preview active";
+            }, 2500);
         });
 
-        stopPreviewBtn.addEventListener('click', () => { if (stopPreviewBtn.disabled) return; triggerStopPreview(); });
+        stopPreviewBtn.addEventListener('click', () => { if (!stopPreviewBtn.disabled) triggerStopPreview(); });
 
         function triggerStopPreview() {
             isReceivingStream = false; ipcRenderer.send('stop-preview');
-            document.getElementById('previewIframe').src = "about:blank"; document.getElementById('waitingText').style.opacity = '1';
-            const netStatus = document.getElementById('netStatus');
+            document.getElementById('previewIframe').src = "about:blank"; 
+            document.getElementById('waitingText').style.opacity = '1';
             if (isEngineActive) { netStatus.innerText = "• STANDBY"; netStatus.className = "status standby"; } 
             else { netStatus.innerText = "• OFFLINE"; netStatus.className = "status"; }
             stopPreviewBtn.disabled = true; stopPreviewBtn.className = "action-btn btn-stop-preview"; reloadBtn.innerText = "🔄 Start Preview";
         }
 
-        ipcRenderer.on('stream-disconnected', () => { if (isReceivingStream) triggerStopPreview(); });
+        // ==========================================
+        // 5. ANIMASI GRAFIK & TELEMETRI API 
+        // ==========================================
+        let isStreamActiveInMediaMTX = false;
+        let lastBytesReceived = 0;
+        
+        setInterval(async () => {
+            if (!isEngineActive) { isStreamActiveInMediaMTX = false; return; }
+            try {
+                const res = await fetch('http://127.0.0.1:9997/v3/paths/list');
+                const data = await res.json();
+                
+                const irlPath = data.items.find(item => item.name === 'irl');
+                if (irlPath) {
+                    let currentBytes = irlPath.bytesReceived || 0;
+                    if (irlPath.ready || irlPath.sourceReady || (currentBytes > lastBytesReceived)) {
+                        isStreamActiveInMediaMTX = true;
+                        lastBytesReceived = currentBytes;
+                    } else {
+                        isStreamActiveInMediaMTX = false;
+                    }
+                } else {
+                    isStreamActiveInMediaMTX = false;
+                    lastBytesReceived = 0;
+                }
+            } catch(e) { isStreamActiveInMediaMTX = false; }
+        }, 1000);
 
-        // HTML5 CANVAS
         const canvas = document.getElementById('networkChart');
         const ctx = canvas.getContext('2d');
         const container = document.getElementById('canvasContainer');
@@ -464,8 +544,16 @@
         function drawChart() {
             if(canvas.width === 0) resizeCanvas();
             let newValue = 0;
-            if (isReceivingStream && isEngineActive) { newValue = Math.floor(Math.random() * (4500 - 2800 + 1) + 2800); bitrateTxt.innerText = (newValue).toLocaleString() + " kbps"; bitrateTxt.style.color = "#00ffcc"; } 
-            else { newValue = isEngineActive ? Math.floor(Math.random() * 30) : 0; bitrateTxt.innerText = "0.00 kbps"; bitrateTxt.style.color = "#666677"; }
+            
+            if (isReceivingStream && isEngineActive && isStreamActiveInMediaMTX) { 
+                newValue = Math.floor(Math.random() * (4500 - 2800 + 1) + 2800); 
+                bitrateTxt.innerText = (newValue).toLocaleString() + " kbps"; 
+                bitrateTxt.style.color = "#00ffcc"; 
+            } else { 
+                newValue = isEngineActive ? Math.floor(Math.random() * 30) : 0; 
+                bitrateTxt.innerText = "0.00 kbps"; 
+                bitrateTxt.style.color = "#666677"; 
+            }
             
             dataPoints.push(newValue); dataPoints.shift(); ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.strokeStyle = '#1e1e2b'; ctx.lineWidth = 1; ctx.beginPath();
@@ -479,32 +567,42 @@
                 let x = i * stepX; let y = canvas.height - (dataPoints[i] / maxVal) * canvas.height; let cpX = (x + (i - 1) * stepX) / 2;
                 ctx.bezierCurveTo(cpX, canvas.height - (dataPoints[i-1] / maxVal) * canvas.height, cpX, y, x, y);
             }
-            ctx.strokeStyle = (isReceivingStream && isEngineActive) ? '#00ffcc' : '#333344'; ctx.lineWidth = 2.5; ctx.shadowBlur = (isReceivingStream && isEngineActive) ? 15 : 0; ctx.shadowColor = '#00ffcc'; ctx.stroke();
+            ctx.strokeStyle = (isReceivingStream && isEngineActive && isStreamActiveInMediaMTX) ? '#00ffcc' : '#333344'; 
+            ctx.lineWidth = 2.5; ctx.shadowBlur = (isReceivingStream && isEngineActive && isStreamActiveInMediaMTX) ? 15 : 0; 
+            ctx.shadowColor = '#00ffcc'; ctx.stroke();
             ctx.lineTo(canvas.width, canvas.height); ctx.lineTo(0, canvas.height); ctx.closePath();
+            
             let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, (isReceivingStream && isEngineActive) ? 'rgba(0, 255, 204, 0.25)' : 'rgba(50, 50, 70, 0.05)');
+            gradient.addColorStop(0, (isReceivingStream && isEngineActive && isStreamActiveInMediaMTX) ? 'rgba(0, 255, 204, 0.25)' : 'rgba(50, 50, 70, 0.05)');
             gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
             ctx.fillStyle = gradient; ctx.fill();
         }
         setInterval(drawChart, 300);
 
+        // ==========================================
+        // 6. BUKA TUTORIAL
+        // ==========================================
         let isTutorialOpen = false;
         document.getElementById('tutorialBtn').addEventListener('click', () => {
-            isTutorialOpen = !isTutorialOpen; const overlay = document.getElementById('tutorialOverlay'); const iframe = document.getElementById('previewIframe'); const waitingTxt = document.getElementById('waitingText'); const btn = document.getElementById('tutorialBtn');
-            if (isTutorialOpen) { overlay.classList.add('active'); iframe.style.opacity = '0'; waitingTxt.style.opacity = '0'; btn.innerText = "❌ Tutup Panduan"; btn.style.color = "#fff"; btn.style.borderColor = "#fff"; } 
-            else { overlay.classList.remove('active'); iframe.style.opacity = '1'; btn.innerText = "📖 Buka Panduan Penggunaan"; btn.style.color = "#ffcc00"; btn.style.borderColor = "#ffcc00"; if (iframe.src.includes("about:blank")) waitingTxt.style.opacity = '1'; }
+            isTutorialOpen = !isTutorialOpen; 
+            const overlay = document.getElementById('tutorialOverlay'); 
+            const iframe = document.getElementById('previewIframe'); 
+            const btn = document.getElementById('tutorialBtn');
+            if (isTutorialOpen) { 
+                overlay.classList.add('active'); 
+                iframe.style.opacity = '0'; 
+                btn.innerText = "❌ Tutup Buku Panduan";
+                btn.style.color = "#fff";
+                btn.style.borderColor = "#fff";
+            } 
+            else { 
+                overlay.classList.remove('active'); 
+                iframe.style.opacity = '1'; 
+                btn.innerText = "📖 Buka Panduan Penggunaan";
+                btn.style.color = "#ffcc00";
+                btn.style.borderColor = "#ffcc00";
+            }
         });
-
-        const os = require('os');
-        function getTailscaleIP() {
-            const ifaces = os.networkInterfaces();
-            for (const name in ifaces) { for (const iface of ifaces[name]) { if (iface.family === 'IPv4' && iface.address.startsWith('100.')) return iface.address; } }
-            return '127.0.0.1'; 
-        }
-        const tsIp = getTailscaleIP(); const streamKey = "irl";
-        document.getElementById('ipAddress').innerText = tsIp !== '127.0.0.1' ? tsIp : "Tailscale Mati!";
-        document.getElementById('srtUrl').innerText = `srt://${tsIp}:8890`;
-        document.getElementById('srtStreamId').innerText = `#!::r=${streamKey},m=publish`;
     </script>
 </body>
 </html>
