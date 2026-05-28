@@ -3,604 +3,984 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IRL SYSTEM V1 - Kamar Broadcast</title>
+    <title>IRL SYSTEM V1 - BROADCAST DASHBOARD MASTER</title>
     <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
         :root {
-            --bg: #0b0b0f; --panel: #12121a; --accent: #00ffcc;
-            --accent-blue: #0077ff; --danger: #ff3366; --text: #e0e0e0;
+            --bg: #050508; --panel: #11111a; --accent: #00ffcc;
+            --accent2: #ff33cc; --accent3: #ffff00; --accent4: #00aaff;
+            --danger: #ff3366; --success: #00ff66; --text: #e0e0e0;
             --text-muted: #666677; --border: #222230;
         }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; overflow: hidden; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; height: 100vh; overflow: hidden; display: flex; }
 
-        /* =========================================
-           1. CUSTOM ALERT & CONFIRM MODAL
-           ========================================= */
-        #custom-alert, #custom-confirm { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 20000; display: flex; justify-content: center; align-items: center; opacity: 1; visibility: visible; transition: all 0.3s ease; }
-        #custom-alert.hidden, #custom-confirm.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-        
-        .alert-box, .confirm-box { background: var(--panel); padding: 35px; border-radius: 16px; max-width: 400px; width: 100%; text-align: center; transform: scale(1); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        #custom-alert.hidden .alert-box, #custom-confirm.hidden .confirm-box { transform: scale(0.8); }
-        
-        /* Alert Box Default */
-        .alert-box { border: 1px solid var(--accent); box-shadow: 0 10px 40px rgba(0,255,204,0.2); }
-        .alert-box h3 { margin-top: 0; color: #fff; letter-spacing: 2px; }
-        .alert-box p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px; line-height: 1.5; }
-        .alert-box.error-mode { border-color: var(--danger); box-shadow: 0 10px 40px rgba(255,51,102,0.2); }
-        .alert-box.error-mode h3 { color: var(--danger); }
-        .alert-box.error-mode .btn-alert { background: transparent; border: 2px solid var(--danger); color: var(--danger); }
-        .btn-alert { width: 100%; padding: 12px; background: var(--accent); color: #000; border: 2px solid var(--accent); border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s; }
-        
-        /* Confirm Box (Untuk Reset) */
-        .confirm-box { border: 1px solid var(--danger); box-shadow: 0 15px 50px rgba(255, 51, 102, 0.25); }
-        .confirm-box h3 { margin-top: 0; color: var(--danger); letter-spacing: 2px; text-transform: uppercase; font-size: 1.2rem; }
-        .confirm-box p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 30px; }
-        .confirm-btn-group { display: flex; gap: 15px; }
-        .btn-cancel { flex: 1; padding: 12px; background: transparent; color: var(--text-muted); border: 2px solid #333; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; }
-        .btn-cancel:hover { background: #222; color: #fff; border-color: #555; }
-        .btn-danger { flex: 1; padding: 12px; background: var(--danger); color: #fff; border: 2px solid var(--danger); border-radius: 8px; font-weight: 800; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; }
-        .btn-danger:hover { background: #e60039; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 51, 102, 0.4); }
+        .hidden { display: none !important; opacity: 0; visibility: hidden; pointer-events: none; }
+        .slot-hidden { display: none !important; }
 
-        /* =========================================
-           2. GERBANG LISENSI & SPLASH SCREEN
-           ========================================= */
-        #license-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(5, 5, 8, 0.98); backdrop-filter: blur(20px); z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.5s, visibility 0.5s; }
-        #license-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-        .license-box { background: var(--panel); padding: 40px; border-radius: 16px; border: 1px solid #333; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 0 40px rgba(0,0,0,0.8); }
-        .license-box h2 { margin-top: 0; margin-bottom: 10px; color: #fff; letter-spacing: 2px; }
-        .license-box p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 25px; line-height: 1.5; }
-        .license-input { width: 100%; padding: 15px; background: #050508; border: 1px solid #333; color: #fff; border-radius: 8px; font-family: monospace; font-size: 1.2rem; text-align: center; margin-bottom: 15px; box-sizing: border-box; text-transform: uppercase; letter-spacing: 3px; font-weight: bold; transition: all 0.3s; }
-        .license-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 15px rgba(0,255,204,0.2); }
-        .btn-activate { width: 100%; padding: 15px; background: transparent; color: var(--accent); border: 2px solid var(--accent); border-radius: 8px; font-weight: 800; font-size: 1rem; cursor: pointer; text-transform: uppercase; margin-top: 10px; transition: all 0.3s; }
-        .btn-activate:hover { background: var(--accent); color: #000; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,255,204,0.3); }
-        .btn-activate:disabled { border-color: #333; color: #666; cursor: not-allowed; transform: none; box-shadow: none; }
-
-        #splash-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at center, #161622 0%, #050508 100%); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.8s, visibility 0.8s; }
-        #splash-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-        .brand-logo { font-size: 3.5rem; font-weight: 800; letter-spacing: 6px; color: #fff; margin-bottom: 5px; margin-top: 10px; text-shadow: 0 0 30px rgba(0, 255, 204, 0.2); }
+        /* MODALS & ALERTS */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 20000; display: flex; justify-content: center; align-items: center; transition: all 0.3s ease; }
+        .alert-box, .confirm-box, .license-box, .dvr-box { background: var(--panel); padding: 35px; border-radius: 16px; border: 1px solid var(--border); width: 100%; max-width: 440px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.8); transform: scale(1); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .modal-overlay.hidden .alert-box, .modal-overlay.hidden .dvr-box { transform: scale(0.8); }
+        .alert-box h3, .license-box h2, .dvr-box h3 { color: #fff; letter-spacing: 2px; margin-top: 0; margin-bottom: 20px;}
+        .btn-modal { width: 100%; padding: 12px; background: var(--accent); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 15px; transition: 0.2s;}
+        .btn-modal:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,255,204,0.3); }
+        .btn-cancel { width: 100%; padding: 12px; background: transparent; color: #fff; border: 1px solid #555; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 10px; transition: 0.2s;}
+        .btn-cancel:hover { background: #222; border-color: #777;}
+        
+        .input-pro { width: 100%; padding: 12px 15px; background: #050508; border: 1px solid #333; color: #fff; border-radius: 8px; font-family: monospace; margin-bottom: 12px; outline: none; transition: 0.3s; text-align: left; font-size: 0.85rem;}
+        .input-pro:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(0,255,204,0.2); }
+        .input-label { display: block; text-align: left; font-size: 0.7rem; color: #888; font-weight: bold; margin-bottom: 6px; letter-spacing: 1px;}
+        
+        /* SPLASH SCREEN */
+        #splash-screen { background: radial-gradient(circle at center, #161622 0%, #050508 100%); z-index: 9999; flex-direction: column; }
+        .brand-logo { font-size: 3.5rem; font-weight: 800; letter-spacing: 6px; color: #fff; margin-bottom: 5px; text-shadow: 0 0 30px rgba(0, 255, 204, 0.2); }
         .brand-logo span { color: var(--accent); }
-        .brand-sub { color: var(--text-muted); letter-spacing: 8px; font-size: 0.9rem; margin-bottom: 60px; }
-        .btn-start { padding: 18px 60px; font-size: 1.4rem; font-weight: 800; background: transparent; border: 2px solid var(--accent); color: var(--accent); border-radius: 50px; cursor: pointer; box-shadow: 0 0 20px rgba(0,255,204,0.15); transition: all 0.2s; letter-spacing: 4px; }
-        .btn-start:hover { background: var(--accent); color: #000; transform: translateY(-3px); box-shadow: 0 0 50px rgba(0, 255, 204, 0.5); }
+        .brand-sub { color: var(--text-muted); letter-spacing: 8px; font-size: 0.85rem; margin-bottom: 60px; font-weight: bold;}
+        .btn-start { padding: 18px 60px; font-size: 1.3rem; font-weight: bold; background: transparent; border: 2px solid var(--accent); color: var(--accent); border-radius: 50px; cursor: pointer; transition: 0.2s; letter-spacing: 2px;}
+        .btn-start:hover { background: var(--accent); color: #000; box-shadow: 0 0 30px rgba(0,255,204,0.4); transform: translateY(-3px);}
         
         .btn-reset-splash { background: rgba(255, 51, 102, 0.05); border: 1px solid rgba(255, 51, 102, 0.3); color: var(--danger); margin-top: 40px; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: none; letter-spacing: 1px; padding: 10px 25px; border-radius: 50px; transition: all 0.3s; }
         .btn-reset-splash:hover { background: var(--danger); color: #fff; box-shadow: 0 5px 20px rgba(255, 51, 102, 0.4); transform: translateY(-2px); border-color: var(--danger); }
 
-        /* =========================================
-           3. MAIN UI & DASHBOARD
-           ========================================= */
+        /* UI LAYOUT & SCROLL FIX */
         #app-container { display: flex; width: 100%; height: 100%; }
-        .sidebar { width: 380px; background: var(--panel); padding: 25px 20px; display: flex; flex-direction: column; border-right: 1px solid var(--border); overflow-y: auto; z-index: 10; box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5); }
-        .sidebar::-webkit-scrollbar, .tutorial-overlay::-webkit-scrollbar { width: 6px; }
-        .sidebar::-webkit-scrollbar-track, .tutorial-overlay::-webkit-scrollbar-track { background: transparent; }
-        .sidebar::-webkit-scrollbar-thumb, .tutorial-overlay::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-        .sidebar::-webkit-scrollbar-thumb:hover, .tutorial-overlay::-webkit-scrollbar-thumb:hover { background: var(--accent); }
-        .header { font-size: 1.25rem; font-weight: 700; color: #fff; margin-bottom: 25px; border-left: 4px solid var(--accent); padding-left: 12px; flex-shrink: 0; letter-spacing: 1.5px; }
-        .group-title { font-size: 0.75rem; font-weight: 800; margin-bottom: 10px; padding-left: 5px; flex-shrink: 0; letter-spacing: 1.5px; }
-        .title-hp { color: var(--accent); } .title-obs { color: var(--accent-blue); }
-        .info-box { background: #181824; padding: 15px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border); flex-shrink: 0; }
-        .info-item { margin-bottom: 14px; } .info-item:last-child { margin-bottom: 0; }
-        .info-label { color: var(--text-muted); font-size: 0.7rem; font-weight: 700; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-        .info-value-wrapper { position: relative; display: flex; align-items: center; }
-        .info-value { width: 100%; color: #fff; font-family: monospace; font-size: 0.8rem; background: #0f0f15; padding: 10px 55px 10px 12px; border-radius: 6px; border: 1px solid #1f1f2e; word-break: break-all; }
-        .info-value.highlight { font-weight: 700; border-left: 3px solid #fff; font-size: 0.95rem; }
-        .info-value.highlight-accent { color: var(--accent); border-left: 3px solid var(--accent); font-weight: 700; }
-        .info-value.internal-url { color: #ccc; border-left: 3px solid var(--accent-blue); }
-        .copy-btn { position: absolute; right: 6px; background: rgba(255,255,255,0.05); color: #888; border: 1px solid #333; border-radius: 4px; padding: 4px 8px; font-size: 0.6rem; cursor: pointer; transition: all 0.2s; font-weight: bold; }
-        .hp-box .copy-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
-        .obs-box .copy-btn:hover { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
-        .copy-btn:active { transform: scale(0.85); }
         
-        .action-buttons { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
-        button.action-btn { width: 100%; padding: 12px; background: transparent; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.85rem; transition: all 0.2s; }
-        button.action-btn:active { transform: scale(0.96); }
-        .btn-core-toggle { border: 1px solid var(--danger); color: var(--danger); }
-        .btn-core-toggle.stopped { border: 1px solid var(--accent); color: var(--accent); }
-        .preview-btn-group { display: flex; gap: 8px; width: 100%; }
-        .btn-reload { border: 1px solid var(--accent-blue); color: var(--accent-blue); flex: 2; }
-        .btn-reload:hover { background: rgba(0, 119, 255, 0.1); }
-        .btn-stop-preview { border: 1px solid var(--text-muted); color: var(--text-muted); flex: 1; opacity: 0.5; cursor: not-allowed; }
-        .btn-stop-preview.active { border: 1px solid var(--danger); color: var(--danger); opacity: 1; cursor: pointer; }
-        .btn-stop-preview.active:hover { background: rgba(255, 51, 102, 0.1); }
-        .btn-tutorial { border: 1px solid #ffcc00; color: #ffcc00; margin-top: 5px; }
-        .btn-tutorial:hover { background: rgba(255, 204, 0, 0.1); }
+        .sidebar { width: 440px; background: #0f0f18; border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 5; box-shadow: 5px 0 20px rgba(0,0,0,0.3); overflow: hidden;}
+        
+        /* Area Statis Atas */
+        .sidebar-top { padding: 20px 20px 10px 20px; flex-shrink: 0; }
+        .header-pro { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 15px; }
+        .header-title { font-size: 1.15rem; font-weight: bold; color: #fff; border-left: 4px solid var(--accent); padding-left: 10px; letter-spacing: 1px; }
+        .hardware-telemetry { display: flex; gap: 12px; font-size: 0.75rem; font-weight: bold; }
+        .hw-item span { color: var(--accent); font-family: monospace; }
+        .vpn-box { background: #151522; padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border: 1px dashed #333; }
+        .vpn-lbl { font-size: 0.65rem; color: #aaa; font-weight: bold; letter-spacing: 1px; text-transform: uppercase;}
+        .vpn-ip { font-family: monospace; color: var(--accent); font-weight: bold; font-size: 0.85rem;}
+        .selector-box { display: flex; flex-direction: column; gap: 5px; }
+        .selector-box label { font-size: 0.65rem; color: #888; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .select-pro { background: #000; color: #fff; border: 1px solid #333; padding: 10px; border-radius: 6px; font-weight: bold; outline: none; cursor: pointer; transition: 0.2s;}
+        .select-pro:hover { border-color: var(--accent); }
 
-        .footer { margin-top: auto; text-align: center; font-size: 0.65rem; color: var(--text-muted); padding-top: 15px; padding-bottom: 5px; cursor: pointer; transition: all 0.3s; letter-spacing: 2px; font-weight: 600; border-top: 1px solid var(--border); }
-        .footer:hover { color: var(--accent); text-shadow: 0 0 10px rgba(0, 255, 204, 0.4); }
+        /* Area Scroll Khusus Kartu Kamera */
+        .sidebar-scroll { flex: 1; overflow-y: auto; padding: 5px 20px 10px 20px; }
+        .sidebar-scroll::-webkit-scrollbar { width: 5px; } 
+        .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        /* Area Statis Bawah */
+        .sidebar-bottom { padding: 15px 20px 20px 20px; flex-shrink: 0; background: #0f0f18; border-top: 1px solid var(--border); box-shadow: 0 -5px 15px rgba(0,0,0,0.2);}
+
+        /* KARTU KAMERA */
+        .cam-card { background: #11111a; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 15px; overflow: hidden; display: none; transition: 0.3s; transform-origin: top; }
+        .cam-card.visible { display: block; animation: slideDown 0.3s ease-out forwards; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .cam1-style { border-top: 3px solid var(--accent); } .cam2-style { border-top: 3px solid var(--accent2); }
+        .cam3-style { border-top: 3px solid var(--accent3); } .cam4-style { border-top: 3px solid var(--accent4); }
         
-        /* =========================================
-           4. VIDEO PLAYER & TELEMETRY
-           ========================================= */
-        .main-content { flex-grow: 1; display: flex; flex-direction: column; padding: 25px; background: #050508; position: relative; gap: 20px; }
-        .video-container { width: 100%; flex-grow: 1; border-radius: 16px; overflow: hidden; position: relative; background: #0d0d12; display: flex; justify-content: center; align-items: center; border: 1px solid var(--border); box-shadow: inset 0 0 40px rgba(0,0,0,0.8); perspective: 1200px; } /* Tambah perspective untuk efek 3D */
-        iframe { width: 100%; height: 100%; border: none; background: #000; position: absolute; top: 0; left: 0; transition: opacity 0.3s; }
-        #waitingText { position: absolute; color: #3a3a4a; font-weight: 600; font-size: 1.1rem; z-index: 2; transition: opacity 0.3s; }
-        .network-panel { width: 100%; height: 160px; background: #0d0d12; border-radius: 12px; border: 1px solid var(--border); padding: 15px 20px; display: flex; flex-direction: column; flex-shrink: 0; position: relative; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
-        .network-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-bottom: 10px; letter-spacing: 1.5px; }
-        .network-header span.status { color: #ff3366; transition: color 0.3s; } 
-        .network-header span.status.standby { color: #ffcc00; } 
-        .network-header span.status.active { color: var(--accent); }
-        .network-header span.bitrate-text { font-family: monospace; color: #fff; font-size: 0.9rem; }
-        .canvas-container { flex-grow: 1; position: relative; width: 100%; height: 100%; }
-        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+        .cam-header { background: #161622; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+        .cam-name-input { background: rgba(255,255,255,0.04); border: 1px solid transparent; color: #fff; font-size: 0.85rem; font-weight: bold; outline: none; width: 55%; border-radius: 4px; padding: 4px 8px; font-family: inherit;}
+        .cam-name-input:focus { border: 1px solid #333; background: #000; }
+        .cam-indicator { font-size: 0.65rem; font-weight: bold; padding: 4px 10px; border-radius: 20px; background: rgba(0,0,0,0.5); letter-spacing: 1px; transition: 0.3s;}
+        .cam-indicator.off { color: var(--danger); border: 1px solid var(--danger); }
+        .cam-indicator.on { color: var(--success); border: 1px solid var(--success); box-shadow: 0 0 8px rgba(0,255,102,0.2) inset;}
         
-        /* =========================================
-           5. TUTORIAL / BUKU PANDUAN DENGAN ANIMASI 3D
-           ========================================= */
-        .tutorial-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11,11,15,0.95); backdrop-filter: blur(15px); z-index: 10; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s; }
+        .cam-body { padding: 12px 15px; }
+        .sub-heading { font-size: 0.65rem; color: #777; font-weight: bold; margin-bottom: 6px; margin-top: 4px; letter-spacing: 1px; text-transform: uppercase;}
+        .input-group { display: flex; align-items: center; margin-bottom: 8px; background: #07070c; border: 1px solid #222; border-radius: 6px; overflow: hidden; transition: 0.2s;}
+        .input-group:hover { border-color: #444; }
+        .input-group .lbl { background: #1c1c28; color: #aaa; font-size: 0.65rem; font-weight: bold; padding: 8px 0; width: 45px; text-align: center; }
+        .input-group input { flex: 1; background: transparent; border: none; color: #fff; font-family: monospace; font-size: 0.75rem; padding: 0 8px; outline: none; }
+        .input-group .copy-btn { background: #161622; color: var(--accent); border: none; border-left: 1px solid #222; padding: 8px 10px; font-size: 0.65rem; font-weight: bold; cursor: pointer; }
+        .input-group .copy-btn:hover { background: var(--text); color: #000; }
+        
+        .rec-area { display: flex; gap: 8px; margin-top: 8px; border-top: 1px dashed #222; padding-top: 8px; }
+        .btn-rec-manual { flex: 1; padding: 6px; font-size: 0.7rem; font-weight: bold; border: 1px solid #444; border-radius: 4px; background: transparent; color: #fff; cursor: pointer; text-transform: uppercase; transition: 0.2s;}
+        .btn-rec-manual:hover { background: #222; }
+        .btn-rec-manual.active-rec { background: var(--danger); border-color: var(--danger); font-weight: 800; animation: blinker 1.5s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0.4; } }
+
+        /* BUTTON CONSOLE & RIPPLE ANIMATION */
+        button { position: relative; overflow: hidden; }
+        .ripple { position: absolute; border-radius: 50%; transform: scale(0); animation: rippleEffect 0.6s linear; background: rgba(255, 255, 255, 0.3); pointer-events: none; }
+        @keyframes rippleEffect { to { transform: scale(4); opacity: 0; } }
+
+        .action-buttons { display: flex; flex-direction: column; gap: 8px; }
+        .btn-action { padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; border: 1px solid #333; background: transparent; color: #fff; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); letter-spacing: 1px; text-transform: uppercase; font-size: 0.8rem;}
+        .btn-action:active { transform: scale(0.96); }
+        .btn-engine { border-color: var(--danger); color: var(--danger); }
+        .btn-engine.stopped { border-color: var(--success); color: var(--success); }
+        .btn-engine.stopped:hover { background: rgba(0,255,102,0.1); }
+        .btn-preview { border-color: #0077ff; color: #0077ff; } .btn-preview:hover { background: rgba(0,119,255,0.1); }
+        .btn-stop { border-color: #444; color: #444; cursor: not-allowed;} .btn-stop.active { border-color: var(--danger); color: var(--danger); cursor: pointer;}
+        .btn-share-all { border-color: #ffcc00; color: #ffcc00; } .btn-share-all:hover { background: rgba(255,204,0,0.1); }
+        .btn-tutorial-trigger { border-color: #a600ff; color: #a600ff; } .btn-tutorial-trigger:hover { background: rgba(166,0,255,0.1); }
+        
+        .dvr-controls { display: flex; gap: 8px; }
+        .btn-dvr-auto { flex: 4; border-color: #555; color: #aaa; }
+        .btn-dvr-settings { flex: 1; border-color: #888; color: #fff; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;} .btn-dvr-settings:hover { background: #222; }
+
+        .footer { margin-top: 15px; text-align: center; font-size: 0.6rem; color: #444; font-weight: bold; letter-spacing: 2px;}
+
+        /* MAIN SCREEN - MULTI MONITOR MATRIX */
+        .main-content { flex: 1; display: flex; flex-direction: column; padding: 20px; gap: 15px; background: var(--bg); position: relative;}
+        .video-matrix { flex: 1; display: grid; gap: 15px; transition: 0.3s; }
+        .grid-layout-1 { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+        .grid-layout-2 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
+        .grid-layout-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+
+        .video-slot { background: #09090f; border: 1px solid var(--border); border-radius: 12px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; transition: all 0.3s; box-shadow: inset 0 0 50px rgba(0,0,0,0.8); }
+        .video-slot iframe { width: 100%; height: 100%; border: none; position: absolute; z-index: 1; opacity: 0; transition: opacity 0.5s; }
+        .waiting-text { color: #252535; font-weight: bold; font-size: 0.9rem; position: absolute; z-index: 0; letter-spacing: 1px; text-transform: uppercase;}
+        
+        .cam-badge { position: absolute; top: 15px; left: 15px; padding: 5px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: bold; z-index: 5; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); border-left: 3px solid transparent;}
+        .b1 { border-left-color: var(--accent); } .b2 { border-left-color: var(--accent2); }
+        .b3 { border-left-color: var(--accent3); } .b4 { border-left-color: var(--accent4); }
+
+        /* VU METER STEREO FIX */
+        .vu-meter-box { position: absolute; right: 15px; height: 85%; width: 14px; background: rgba(10,10,15,0.8); border-radius: 4px; bottom: 7.5%; display: flex; justify-content: space-between; padding: 2px; overflow: hidden; z-index: 4; border: 1px solid #333;}
+        .vu-inner-bar { width: 4px; background: linear-gradient(to top, #00ff66 0%, #00ff66 60%, #ffff00 80%, #ff3366 100%); height: 0%; transition: height 0.1s ease-out; align-self: flex-end; border-radius: 2px;}
+
+        /* NETWORK PANEL BOTTOM GRAPH */
+        .network-panel { height: 130px; background: #0a0a10; border: 1px solid var(--border); border-radius: 12px; padding: 12px 20px; display: flex; flex-direction: column; position: relative; }
+        .net-header { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: bold; color: #555; margin-bottom: 5px; letter-spacing: 1px;}
+        .matrix-bitrates-display { display: flex; gap: 15px; font-family: monospace; font-size: 0.75rem;}
+        .bcam1 { color: var(--accent); } .bcam2 { color: var(--accent2); }
+        .bcam3 { color: var(--accent3); } .bcam4 { color: var(--accent4); }
+        .canvas-container { flex: 1; position: relative; }
+        canvas { position: absolute; width: 100%; height: 100%; }
+
+        /* BOOK TUTORIAL OVERLAY 3D */
+        .tutorial-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(8,8,12,0.96); backdrop-filter: blur(15px); z-index: 100; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s; }
         .tutorial-overlay.active { opacity: 1; visibility: visible; }
+        .tutorial-overlay::-webkit-scrollbar { width: 6px; } .tutorial-overlay::-webkit-scrollbar-thumb { background: #333; border-radius:10px;}
         
-        /* KUNCI REVISI: Mengembalikan efek melipat 3D elastis */
-        .tutorial-content { max-width: 850px; width: 100%; padding-bottom: 60px; transform-origin: top center; opacity: 0; }
-        @keyframes patahMasuk { 
-            0% { transform: rotateX(-90deg); opacity: 0; } 
-            40% { transform: rotateX(15deg); opacity: 1; } 
-            65% { transform: rotateX(-8deg); } 
-            85% { transform: rotateX(3deg); } 
-            100% { transform: rotateX(0deg); opacity: 1; } 
-        }
+        .tutorial-content { max-width: 820px; width: 100%; padding-bottom: 5px; transform-origin: top center; opacity: 0; }
+        @keyframes patahMasuk { 0% { transform: rotateX(-90deg); opacity: 0; } 40% { transform: rotateX(15deg); opacity: 1; } 65% { transform: rotateX(-8deg); } 85% { transform: rotateX(3deg); } 100% { transform: rotateX(0deg); opacity: 1; } }
         .tutorial-overlay.active .tutorial-content { animation: patahMasuk 0.7s ease-out forwards; }
-
-        .tutorial-overlay h1 { color: #ffcc00; margin-top: 0; font-size: 2rem; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 30px; text-align: center; }
-        .tutorial-step { background: #181824; padding: 25px; border-radius: 12px; border-left: 4px solid var(--accent); margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .tutorial-step.red { border-left-color: var(--danger); }
-        .tutorial-step.blue { border-left-color: var(--accent-blue); }
-        .tutorial-step.yellow { border-left-color: #ffcc00; }
-        .tutorial-step h3 { margin: 0 0 15px 0; font-size: 1.2rem; color: #fff; display: flex; align-items: center; gap: 10px; }
-        .tutorial-step ul { margin: 0; padding-left: 20px; color: #bbb; font-size: 0.95rem; line-height: 1.7; }
-        .tutorial-step li { margin-bottom: 10px; }
-        .tutorial-step code { background: #000; color: #fff; padding: 4px 8px; border-radius: 4px; font-family: monospace; border: 1px solid #333; font-size: 0.85rem;}
-        .highlight-text { color: var(--accent); font-weight: bold; } 
-        .highlight-blue { color: var(--accent-blue); font-weight: bold; }
-        .highlight-red { color: var(--danger); font-weight: bold; }
+        .tutorial-overlay h1 { color: #ffcc00; margin-top: 0; font-size: 1.8rem; border-bottom: 2px solid #222; padding-bottom: 12px; margin-bottom: 25px; text-align: center; letter-spacing: 1px; }
+        .tutorial-step { background: #141420; padding: 20px; border-radius: 10px; border-left: 4px solid var(--accent); margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .t-red { border-left-color: var(--danger); } .t-blue { border-left-color: var(--accent4); } .t-yellow { border-left-color: #ffcc00; }
+        .tutorial-step h3 { margin: 0 0 10px 0; font-size: 1.1rem; color: #fff; }
+        .tutorial-step ul { margin: 0; padding-left: 18px; color: #bbb; font-size: 0.9rem; line-height: 1.6; }
+        .tutorial-step li { margin-bottom: 8px; }
+        .tutorial-step code { background: #000; color: #fff; padding: 3px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #222; font-size: 0.8rem;}
     </style>
 </head>
 <body>
 
-    <div id="custom-alert" class="hidden">
-        <div class="alert-box" id="alertBox">
-            <h3 id="alertTitle">Pesan</h3>
-            <p id="alertMessage">Pesan</p>
-            <button id="alertBtn" class="btn-alert">OK</button>
+    <div id="custom-alert" class="modal-overlay hidden">
+        <div class="alert-box">
+            <h3 id="alertTitle">Sistem Notifikasi</h3>
+            <p id="alertMessage" style="color:#aaa; font-size:0.9rem; line-height:1.5;">Pesan</p>
+            <button id="alertBtn" class="btn-modal">Mengerti</button>
         </div>
     </div>
 
-    <div id="custom-confirm" class="hidden">
+    <div id="custom-confirm" class="modal-overlay hidden">
         <div class="confirm-box">
-            <h3>Peringatan Sistem</h3>
-            <p>Apakah Anda yakin ingin <b>menghapus lisensi</b> dari perangkat ini? Aplikasi akan kembali terkunci dan membutuhkan aktivasi ulang.</p>
-            <div class="confirm-btn-group">
-                <button id="btnCancelReset" class="btn-cancel">Batal</button>
-                <button id="btnConfirmReset" class="btn-danger">Ya, Reset</button>
+            <h3 style="color:var(--danger)">HAPUS LISENSI PERANGKAT?</h3>
+            <p style="color:#aaa; font-size:0.9rem; line-height:1.5;">Tindakan ini akan membuang hak aktivasi permanen dari laptop ini. Aplikasi akan terkunci kembali.</p>
+            <div style="display:flex; gap:12px;">
+                <button id="btnCancelReset" class="btn-cancel">Batalkan</button>
+                <button id="btnConfirmReset" class="btn-modal" style="background:var(--danger); color:#fff;">Ya, Hapus</button>
             </div>
         </div>
     </div>
 
-    <div id="license-screen">
+    <div id="dvr-settings-modal" class="modal-overlay hidden">
+        <div class="dvr-box">
+            <h3>⚙️ PENGATURAN DVR (RECORD)</h3>
+            
+            <span class="input-label">RESOLUSI VIDEO OUTPUT</span>
+            <select id="dvrRes" class="input-pro">
+                <option value="original">Original (Kualitas Mentah HP)</option>
+                <option value="1080">1080p (FHD 1920x1080)</option>
+                <option value="720">720p (HD 1280x720)</option>
+            </select>
+
+            <span class="input-label">FRAME RATE (FPS)</span>
+            <select id="dvrFps" class="input-pro">
+                <option value="original">Original (Sesuai Tarikan HP)</option>
+                <option value="60">60 FPS (Sangat Mulus)</option>
+                <option value="30">30 FPS (Standar Stabil)</option>
+            </select>
+
+            <span class="input-label">BITRATE TARGET</span>
+            <select id="dvrBit" class="input-pro">
+                <option value="original">Original (Tanpa Batasan)</option>
+                <option value="8000k">8000 kbps (High Quality)</option>
+                <option value="4000k">4000 kbps (Good Quality)</option>
+                <option value="2500k">2500 kbps (Hemat Ruang)</option>
+            </select>
+
+            <span class="input-label">LOKASI FOLDER PENYIMPANAN</span>
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="dvrPath" class="input-pro" style="margin-bottom:0;" readonly value="./recordings">
+                <button id="btnBrowseFolder" class="btn-modal" style="margin-top:0; width:auto; padding:0 20px; font-size:0.75rem;">PILIH FOLDER</button>
+            </div>
+
+            <div style="display:flex; gap:12px; margin-top:25px;">
+                <button id="btnCancelDvr" class="btn-cancel" style="margin-top:0;">Tutup</button>
+                <button id="btnSaveDvr" class="btn-modal" style="margin-top:0;">Simpan</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="license-screen" class="modal-overlay">
         <div class="license-box">
-            <h2>AKTIVASI SISTEM</h2>
-            <p>Masukkan Username TikTok dan Kode Lisensi.</p>
-            <input type="text" id="tiktokInput" class="license-input" placeholder="username" autocomplete="off" style="text-transform: lowercase;">
-            <div style="color: #ff3366; font-size: 0.75rem; font-weight: bold; margin-bottom: 15px; text-align: left;">*Tulis Username saja, JANGAN pakai tanda @</div>
-            <input type="text" id="licenseKeyInput" class="license-input" placeholder="KB-XXXX-XXXX" autocomplete="off">
-            <button id="activateBtn" class="btn-activate">Verifikasi Lisensi</button>
+            <h2>AKTIVASI IRL SYSTEM PRO</h2>
+            <input type="text" id="tiktokInput" class="license-input" placeholder="USERNAME TIKTOK (TANPA @)">
+            <input type="text" id="licenseKeyInput" class="license-input" placeholder="KODE LISENSI (KB-XXXX-XXXX)">
+            <button id="activateBtn" class="btn-modal">Verifikasi Perangkat</button>
         </div>
     </div>
 
-    <div id="splash-screen">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="120" height="120" style="margin-bottom: 15px;">
-            <path d="M50 95 C 50 95, 20 60, 20 40 A 30 30 0 1 1 80 40 C 80 60, 50 95, 50 95 Z" fill="none" stroke="#00ffcc" stroke-width="6" />
-            <path d="M35 35 A 20 20 0 0 1 65 35" fill="none" stroke="#fff" stroke-width="4" />
-            <circle cx="50" cy="55" r="4" fill="#fff" />
-        </svg>
+    <div id="splash-screen" class="modal-overlay">
         <div class="brand-logo">IRL SYSTEM <span>V1</span></div>
-        <div class="brand-sub">POWERED BY KAMAR BROADCAST</div>
-        <button class="btn-start" id="enterBtn">START</button>
-        
-        <button id="resetLicenseBtn" class="btn-reset-splash">🔑 Reset Lisensi Perangkat</button>
+        <div class="brand-sub">QUAD CAM BROADCAST ENGINE MASTER</div>
+        <button class="btn-start" id="enterBtn">START DASHBOARD</button>
+        <button id="resetLicenseBtn" class="btn-reset-splash">🔑 Hapus Lisensi Perangkat Ini</button>
     </div>
 
     <div id="app-container">
-        <div class="sidebar">
-            <div class="header">IRL SYSTEM V1</div>
-            <div class="group-title title-hp">📱 UNTUK HP (DI LAPANGAN)</div>
-            <div class="info-box hp-box">
-                <div class="info-item">
-                    <div class="info-label">VPN IP (Tailscale)</div>
-                    <div class="info-value-wrapper">
-                        <div class="info-value highlight" id="ipAddress">Mendeteksi...</div>
-                        <button class="copy-btn" data-target="ipAddress">COPY</button>
-                    </div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">SRT Server URL</div>
-                    <div class="info-value-wrapper">
-                        <div class="info-value" id="srtUrl">Mendeteksi...</div>
-                        <button class="copy-btn" data-target="srtUrl">COPY</button>
-                    </div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">SRT Stream ID</div>
-                    <div class="info-value-wrapper">
-                        <div class="info-value highlight-accent" id="srtStreamId">Mendeteksi...</div>
-                        <button class="copy-btn" data-target="srtStreamId">COPY</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="group-title title-obs">💻 UNTUK OBS (DI LAPTOP)</div>
-            <div class="info-box obs-box">
-                <div class="info-item">
-                    <div class="info-label">Media Source (RTMP)</div>
-                    <div class="info-value-wrapper">
-                        <div class="info-value internal-url" id="obsRtmpUrl">rtmp://127.0.0.1/irl</div>
-                        <button class="copy-btn" data-target="obsRtmpUrl">COPY</button>
-                    </div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Media Source (SRT)</div>
-                    <div class="info-value-wrapper">
-                        <div class="info-value internal-url" id="obsSrtUrl">srt://127.0.0.1:8890?streamid=read:irl</div>
-                        <button class="copy-btn" data-target="obsSrtUrl">COPY</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="action-buttons">
-                <button id="coreToggleBtn" class="action-btn btn-core-toggle stopped">🟢 Start Core Engine</button>
-                <div class="preview-btn-group">
-                    <button id="reloadBtn" class="action-btn btn-reload">🔄 Start Preview</button>
-                    <button id="stopPreviewBtn" class="action-btn btn-stop-preview" disabled>⏹️ Stop</button>
-                </div>
-                <button id="tutorialBtn" class="action-btn btn-tutorial">📖 Buka Panduan Penggunaan</button>
-            </div>
-            
-            <div style="flex-grow: 1; min-height: 20px;"></div>
-            <div class="footer" id="tiktokLink">POWERED BY KAMAR BROADCAST</div>
-        </div>
         
-        <div class="main-content">
-            <div class="video-container">
-                <div id="waitingText">Menunggu Stream Proxy...</div>
-                <iframe id="previewIframe" src="about:blank" allow="autoplay; fullscreen"></iframe>
-                
-                <div id="tutorialOverlay" class="tutorial-overlay">
-                    <div class="tutorial-content">
-                        <h1>📖 BUKU PANDUAN IRL SYSTEM V1</h1>
-                        
-                        <div class="tutorial-step">
-                            <h3>1️⃣ Persiapan Jaringan (Tailscale)</h3>
-                            <ul>
-                                <li>Pastikan aplikasi <strong>Tailscale</strong> sudah terinstal dan dalam status <i>Active/Connected</i> di HP dan Laptop Anda.</li>
-                                <li>Cek kolom <span class="highlight-text">VPN IP (Tailscale)</span> di aplikasi ini. Pastikan angkanya berawalan <code>100.x.x.x</code>. Jika tulisannya "Tailscale Mati", periksa kembali koneksi VPN di laptop Anda.</li>
-                            </ul>
-                        </div>
-
-                        <div class="tutorial-step yellow">
-                            <h3>2️⃣ Menyalakan Server (Core Engine)</h3>
-                            <ul>
-                                <li>Klik tombol <span class="highlight-text">🟢 Start Core Engine</span> pada panel kiri.</li>
-                                <li>Tombol akan berubah menjadi merah (<span class="highlight-red">🔴 Stop Core Engine</span>) dan status jaringan di bawah layar akan berubah menjadi <strong style="color: #ffcc00">• STANDBY</strong>.</li>
-                                <li>Ini artinya server PC Anda sudah siap menerima pancaran video dari lapangan.</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="tutorial-step red">
-                            <h3>3️⃣ Setting Aplikasi Kamera di HP</h3>
-                            <p style="margin-top: 0; color: #bbb; margin-left: 20px; font-size: 0.9rem;">Pilih salah satu aplikasi di bawah ini sesuai perangkat Anda:</p>
-                            <ul>
-                                <li><strong>Bagi Pengguna IRL Pro (Kamera Bawaan HP):</strong>
-                                    <ul>
-                                        <li>Buka menu <i>Settings &gt; Video</i>. Atur Bitrate ke <code>2500 - 4500 kbps</code>, and Video Codec <strong>WAJIB</strong> menggunakan <code>HEVC / H.265</code>.</li>
-                                        <li>Masuk ke menu <i>Connections</i>, tambahkan koneksi baru jenis SRT.</li>
-                                        <li>Paste <span class="highlight-text">SRT Server URL</span> dan <span class="highlight-text">SRT Stream ID</span> dari aplikasi ini ke kolom yang tersedia. Tekan tombol <strong>LIVE</strong>.</li>
-                                    </ul>
-                                </li>
-                                <li style="margin-top: 15px;"><strong>Bagi Pengguna USB Camera Pro (Kamera Eksternal):</strong>
-                                    <ul>
-                                        <li>Colok kamera via OTG. Buka menu pengaturan (titik tiga) &gt; <i>Stream Settings</i>.</li>
-                                        <li>Ubah <i>Type</i> menjadi <strong>RTMP/RTSP Server</strong>.</li>
-                                        <li>Masukkan URL dan Stream ID. Centang <i>Background Audio</i>. Tekan <strong>START STREAM</strong>.</li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div class="tutorial-step">
-                            <h3>4️⃣ Monitoring (Preview Video)</h3>
-                            <ul>
-                                <li>Setelah HP melakukan <i>live</i>, tunggu sekitar 3 detik, lalu klik tombol <span class="highlight-blue">🔄 Start Preview</span>.</li>
-                                <li>Grafik garis di bawah layar akan mulai melompat sesuai dengan kestabilan sinyal di lapangan, dan video akan muncul di layar utama.</li>
-                            </ul>
-                        </div>
-
-                        <div class="tutorial-step blue">
-                            <h3>5️⃣ Integrasi ke OBS Studio</h3>
-                            <ul>
-                                <li>Buka OBS Studio. Tambahkan <i>Source</i> baru berjenis <strong>Media Source</strong>.</li>
-                                <li>Hilangkan centang pada opsi <code>Local File</code>.</li>
-                                <li>Di kolom <strong>Input</strong>, paste link dari <span class="highlight-blue">Media Source (SRT)</span>.</li>
-                                <li>Di kolom <strong>Input Format</strong> (tepat di bawahnya), ketik: <code>mpegts</code></li>
-                                <li>Klik OK. Video mentah HEVC kualitas maksimal dari HP akan langsung tersedot ke dalam OBS Anda!</li>
-                            </ul>
-                        </div>
-
-                        <div class="tutorial-step" style="border-left-color: #555;">
-                            <h3 style="color: #aaa;">💡 Tips & Troubleshooting</h3>
-                            <ul style="color: #888;">
-                                <li><strong>Layar Preview Blank Hitam?</strong> Tekan tombol <span style="color: #ff3366">⏹️ Stop</span>, tunggu 2 detik, lalu tekan <span class="highlight-blue">🔄 Start Preview</span> kembali.</li>
-                                <li><strong>Delay Tinggi di OBS?</strong> Buka properties Media Source di OBS, turunkan <i>Network Buffering</i> menjadi 1MB atau 2MB.</li>
-                                <li><strong>Lupa Menyalakan VPN?</strong> Matikan Core Engine, nyalakan Tailscale, lalu nyalakan Core Engine lagi.</li>
-                            </ul>
-                        </div>
-
+        <div class="sidebar">
+            
+<!-- Area Statis Atas -->
+            <div class="sidebar-top">
+                <div class="header-pro">
+                    <div class="header-title">DASHBOARD MASTER</div>
+                    <div class="hardware-telemetry">
+                        <div class="hw-item">CPU: <span id="cpuVal">0.0%</span></div>
+                        <div class="hw-item">RAM: <span id="ramVal">0.0%</span></div>
                     </div>
                 </div>
+                
+                <!-- TAMBAHAN MENU PILIHAN JARINGAN BARU (3 OPSI) -->
+                <div class="selector-box" style="margin-bottom: 12px;">
+                    <label>Pilih Jalur Jaringan (IP Source):</label>
+                    <select id="ipModeSelect" class="select-pro">
+                        <option value="tailscale">Tailscale VPN (Koneksi Jarak Jauh)</option>
+                        <option value="lokal">Jaringan Lokal (Wi-Fi / LAN Eksternal)</option>
+                        <option value="hotspot">Mobile Hotspot Laptop (Tanpa Router)</option>
+                    </select>
+                </div>
+
+                <!-- KOTAK TAMPILAN IP -->
+                <div class="vpn-box">
+                    <span class="vpn-lbl" id="ipLabel">TAILSCALE VPN NODE IP:</span>
+                    <span class="vpn-ip" id="ipAddress">Mendeteksi...</span>
+                </div>
+
+                <!-- PILIHAN LAYOUT KAMERA (SUDAH DIPERBAIKI BIAR TIDAK DOBEL) -->
+                <div class="selector-box">
+                    <label>Pilih Konfigurasi Kamera Aktif:</label>
+                    <select id="matrixSelect" class="select-pro">
+                        <option value="1" selected>1 Kamera (Solo View - Full Screen)</option>
+                        <option value="2">2 Kamera (Split View - Dual Cam)</option>
+                        <option value="4">4 Kamera (Quad View - Multicam Pro)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="sidebar-scroll">
+                <div class="cam-card cam1-style visible" id="card-1">
+                    <div class="cam-header">
+                        <input type="text" id="cam1Name" placeholder="Nama Kamera 1" class="cam-name-input">
+                        <div id="cam1Indicator" class="cam-indicator off">🔴 OFFLINE</div>
+                    </div>
+                    <div class="cam-body">
+                        <div class="sub-heading">📲 HP INPUT PUSH LINKS:</div>
+                        <div class="input-group"><span class="lbl">RTMP</span><input type="text" id="hpRtmp1" readonly><button class="copy-btn" data-target="hpRtmp1">COPY</button></div>
+                        <div class="input-group"><span class="lbl">SRT</span><input type="text" id="hpSrt1" readonly><button class="copy-btn" data-target="hpSrt1">COPY</button></div>
+                        <div class="input-group"><span class="lbl" style="color:var(--accent);">ID</span><input type="text" id="hpSrtId1" value="#!::r=irl1,m=publish" readonly style="color:var(--accent);"><button class="copy-btn" data-target="hpSrtId1">COPY</button></div>
+                        <div class="sub-heading">💻 OUTPUT PULL (OBS/VMIX):</div>
+                        <div class="input-group"><span class="lbl">RTMP</span><input type="text" id="obsRtmp1" value="rtmp://127.0.0.1/irl1" readonly><button class="copy-btn" data-target="obsRtmp1">COPY</button></div>
+                        <div class="input-group"><span class="lbl">SRT</span><input type="text" id="obsSrt1" value="srt://127.0.0.1:8890?streamid=read:irl1&latency=0" readonly><button class="copy-btn" data-target="obsSrt1">COPY</button></div>
+                        <div class="rec-area"><button id="recBtn-1" class="btn-rec-manual" onclick="toggleRecordChannel(1)">DVR REC</button></div>
+                    </div>
+                </div>
+
+                <div class="cam-card cam2-style" id="card-2">
+                    <div class="cam-header">
+                        <input type="text" id="cam2Name" placeholder="Nama Kamera 2" class="cam-name-input">
+                        <div id="cam2Indicator" class="cam-indicator off">🔴 OFFLINE</div>
+                    </div>
+                    <div class="cam-body">
+                        <div class="sub-heading">📲 HP INPUT PUSH LINKS:</div>
+                        <div class="input-group"><span class="lbl">RTMP</span><input type="text" id="hpRtmp2" readonly><button class="copy-btn" data-target="hpRtmp2">COPY</button></div>
+                        <div class="input-group"><span class="lbl">SRT</span><input type="text" id="hpSrt2" readonly><button class="copy-btn" data-target="hpSrt2">COPY</button></div>
+                        <div class="input-group"><span class="lbl" style="color:var(--accent2);">ID</span><input type="text" id="hpSrtId2" value="#!::r=irl2,m=publish" readonly style="color:var(--accent2);"><button class="copy-btn" data-target="hpSrtId2">COPY</button></div>
+                        <div class="sub-heading">💻 OUTPUT PULL (OBS/VMIX):</div>
+                        <div class="input-group"><span class="lbl">RTMP</span><input type="text" id="obsRtmp2" value="rtmp://127.0.0.1/irl2" readonly><button class="copy-btn" data-target="obsRtmp2">COPY</button></div>
+                        <div class="input-group"><span class="lbl">SRT</span><input type="text" id="obsSrt2" value="srt://127.0.0.1:8890?streamid=read:irl2&latency=0" readonly><button class="copy-btn" data-target="obsSrt2">COPY</button></div>
+                        <div class="rec-area"><button id="recBtn-2" class="btn-rec-manual" onclick="toggleRecordChannel(2)">DVR REC</button></div>
+                    </div>
+                </div>
+
+                <div class="cam-card cam3-style" id="card-3">
+                    <div class="cam-header">
+                        <input type="text" id="cam3Name" placeholder="Nama Kamera 3" class="cam-name-input">
+                        <div id="cam3Indicator" class="cam-indicator off">🔴 OFFLINE</div>
+                    </div>
+                    <div class="cam-body">
+                        <div class="sub-heading">📲 HP INPUT PUSH LINKS:</div>
+                        <div class="input-group"><span class="lbl">RTMP</span><input type="text" id="hpRtmp3" readonly><button class="copy-btn" data-target="hpRtmp3">COPY</button></div>
+                        <div class="input-group"><span class="lbl">SRT</span><input type="text" id="hpSrt3" readonly><button class="copy-btn" data-target="hpSrt3">COPY</button></div>
+                        <div class="input-group"><span class="lbl" style="color:var(--accent3);">ID</span><input type="text" id="hpSrtId3" value="#!::r=irl3,m=publish" readonly style="color:var(--accent3);"><button class="copy-btn" data-target="hpSrtId3">COPY</button></div>
+                        <div class="sub-heading">💻 OUTPUT PULL (OBS/VMIX):</div>
+                        <div class="input-group"><span class="lbl">RTMP</span><input type="text" id="obsRtmp3" value="rtmp://127.0.0.1/irl3" readonly><button class="copy-btn" data-target="obsRtmp3">COPY</button></div>
+                        <div class="input-group"><span class="lbl">SRT</span><input type="text" id="obsSrt3" value="srt://127.0.0.1:8890?streamid=read:irl3&latency=0" readonly><button class="copy-btn" data-target="obsSrt3">COPY</button></div>
+                        <div class="rec-area"><button id="recBtn-3" class="btn-rec-manual" onclick="toggleRecordChannel(3)">DVR REC</button></div>
+                    </div>
+                </div>
+
+                <div class="cam-card cam4-style" id="card-4">
+                    <div class="cam-header">
+                        <input type="text" id="cam4Name" placeholder="Nama Kamera 4" class="cam-name-input">
+                        <div id="cam4Indicator" class="cam-indicator off">🔴 OFFLINE</div>
+                    </div>
+                    <div class="cam-body">
+                        <div class="sub-heading">📲 HP INPUT PUSH LINKS:</div>
+                        <div class="input-group"><span class="lbl">RTMP</span><input type="text" id="hpRtmp4" readonly><button class="copy-btn" data-target="hpRtmp4">COPY</button></div>
+                        <div class="input-group"><span class="lbl">SRT</span><input type="text" id="hpSrt4" readonly><button class="copy-btn" data-target="hpSrt4">COPY</button></div>
+                        <div class="input-group"><span class="lbl" style="color:var(--accent4);">ID</span><input type="text" id="hpSrtId4" value="#!::r=irl4,m=publish" readonly style="color:var(--accent4);"><button class="copy-btn" data-target="hpSrtId4">COPY</button></div>
+                        <div class="sub-heading">💻 OUTPUT PULL (OBS/VMIX):</div>
+                        <div class="input-group"><span class="lbl">RTMP</span><input type="text" id="obsRtmp4" value="rtmp://127.0.0.1/irl4" readonly><button class="copy-btn" data-target="obsRtmp4">COPY</button></div>
+                        <div class="input-group"><span class="lbl">SRT</span><input type="text" id="obsSrt4" value="srt://127.0.0.1:8890?streamid=read:irl4&latency=0" readonly><button class="copy-btn" data-target="obsSrt4">COPY</button></div>
+                        <div class="rec-area"><button id="recBtn-4" class="btn-rec-manual" onclick="toggleRecordChannel(4)">DVR REC</button></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-bottom">
+                <div class="action-buttons">
+                    <button id="coreToggleBtn" class="btn-action btn-engine stopped">🟢 Start Core Engine</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="reloadBtn" class="btn-action btn-preview" style="flex:2;">🔄 START PREVIEWS</button>
+                        <button id="stopPreviewBtn" class="btn-action btn-stop" style="flex:1;" disabled>⏹️ STOP</button>
+                    </div>
+                    <button id="shareAllBtn" class="btn-action btn-share-all">📤 COPY ALL TIM WHATSAPP</button>
+                    
+                    <div class="dvr-controls">
+                        <button id="autoRecGlobalBtn" class="btn-action btn-dvr-auto">DVR AUTO-RECORD: OFF</button>
+                        <button id="openDvrSettingsBtn" class="btn-action btn-dvr-settings" title="Pengaturan DVR">⚙️</button>
+                    </div>
+                    <button id="tutorialBtn" class="btn-action btn-tutorial-trigger">📖 Buka Panduan Penggunaan</button>
+                </div>
+                <div class="footer" style="cursor:pointer; transition:0.3s;" onmouseover="this.style.color='var(--accent)'; this.style.textShadow='0 0 10px rgba(0,255,204,0.5)';" onmouseout="this.style.color='#444'; this.style.textShadow='none';" onclick="require('electron').shell.openExternal('https://www.tiktok.com/@apann_20')">POWERED BY KAMAR BROADCAST</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="video-matrix grid-layout-1" id="matrixContainer">
+                
+                <div class="video-slot" id="slot-1">
+                    <div id="badge-1" class="cam-badge b1">🔴 KAMERA 1</div>
+                    <div class="vu-meter-box">
+                        <div class="vu-inner-bar" id="vu-1-L"></div>
+                        <div class="vu-inner-bar" id="vu-1-R"></div>
+                    </div>
+                    <iframe id="previewIframe1" src="about:blank"></iframe>
+                    <div class="waiting-text" id="wait-1">NO SIGNAL</div>
+                </div>
+
+                <div class="video-slot slot-hidden" id="slot-2">
+                    <div id="badge-2" class="cam-badge b2">🔴 KAMERA 2</div>
+                    <div class="vu-meter-box">
+                        <div class="vu-inner-bar" id="vu-2-L"></div>
+                        <div class="vu-inner-bar" id="vu-2-R"></div>
+                    </div>
+                    <iframe id="previewIframe2" src="about:blank"></iframe>
+                    <div class="waiting-text" id="wait-2">NO SIGNAL</div>
+                </div>
+
+                <div class="video-slot slot-hidden" id="slot-3">
+                    <div id="badge-3" class="cam-badge b3">🔴 KAMERA 3</div>
+                    <div class="vu-meter-box">
+                        <div class="vu-inner-bar" id="vu-3-L"></div>
+                        <div class="vu-inner-bar" id="vu-3-R"></div>
+                    </div>
+                    <iframe id="previewIframe3" src="about:blank"></iframe>
+                    <div class="waiting-text" id="wait-3">NO SIGNAL</div>
+                </div>
+
+                <div class="video-slot slot-hidden" id="slot-4">
+                    <div id="badge-4" class="cam-badge b4">🔴 KAMERA 4</div>
+                    <div class="vu-meter-box">
+                        <div class="vu-inner-bar" id="vu-4-L"></div>
+                        <div class="vu-inner-bar" id="vu-4-R"></div>
+                    </div>
+                    <iframe id="previewIframe4" src="about:blank"></iframe>
+                    <div class="waiting-text" id="wait-4">NO SIGNAL</div>
+                </div>
+
             </div>
 
             <div class="network-panel">
-                <div class="network-header">
-                    <div>SRT NETWORK TELEMETRY <span class="status" id="netStatus">• OFFLINE</span></div>
-                    <span class="bitrate-text" id="bitrateText">0.00 kbps</span>
+                <div class="net-header">
+                    <span id="netStatus">• SYSTEM OFFLINE</span>
+                    <div class="matrix-bitrates-display">
+                        <span class="bcam1" id="boxBit-1">CAM 1: <span id="bitrate1">0</span> kbps</span>
+                        <span class="bcam2 slot-hidden" id="boxBit-2">CAM 2: <span id="bitrate2">0</span> kbps</span>
+                        <span class="bcam3 slot-hidden" id="boxBit-3">CAM 3: <span id="bitrate3">0</span> kbps</span>
+                        <span class="bcam4 slot-hidden" id="boxBit-4">CAM 4: <span id="bitrate4">0</span> kbps</span>
+                    </div>
                 </div>
                 <div class="canvas-container" id="canvasContainer">
                     <canvas id="networkChart"></canvas>
                 </div>
             </div>
+
+<div id="tutorialOverlay" class="tutorial-overlay">
+                <div class="tutorial-content">
+                    <h1>📖 BUKU PANDUAN PENGGUNAAN IRL SYSTEM V1</h1>
+                    
+                    <div class="tutorial-step">
+                        <h3>1️⃣ Pemilihan Jalur Jaringan (IP Source)</h3>
+                        <ul>
+                            <li><strong>Tailscale VPN:</strong> Untuk produksi jarak jauh/beda lokasi kota. HP & Laptop wajib Connect Tailscale.</li>
+                            <li><strong>Jaringan Lokal:</strong> Gunakan Router Wi-Fi bawaan sendiri (tanpa internet tetap jalan) untuk latency paling minim.</li>
+                            <li><strong>Mobile Hotspot:</strong> Nyalakan Hotspot Windows laptop, lalu sambungkan Wi-Fi HP langsung ke laptop.</li>
+                        </ul>
+                    </div>
+
+                    <div class="tutorial-step t-yellow">
+                        <h3>2️⃣ Panduan Setting Aplikasi HP Lapangan (Encoder)</h3>
+                        <ul>
+                            <li><strong>Jalur Utama (SRT):</strong> Selalu utamakan protokol SRT karena jauh lebih instan dan anti-delay dibanding RTMP.</li>
+                            <li><strong>Aplikasi IRL Pro / Larix Broadcaster (Android/iOS):</strong>
+                                <br>• Masuk Settings &gt; SRT Latency: Ubah ke <code>120 msec</code> atau <code>200 msec</code>.
+                                <br>• Keyframe Interval: Kunci di <code>1 second</code> (30 frames).
+                                <br>• B-Frames / Frame Reordering: Wajib <code>OFF / 0</code>.
+                            </li>
+                            <li><strong>Aplikasi Moblin (Khusus iOS / iPhone):</strong>
+                                <br>• Aplikasi terbaik dan paling stabil untuk SRT di iPhone. 
+                                <br>• Masuk ke pengaturan Stream, pilih opsi <strong>Low Latency Mode</strong>.
+                                <br>• Masukkan URL SRT PUSH dan pastikan kolom <em>StreamID</em> terisi kode publish secara presisi (misal: <code>#!::r=irl1,m=publish</code>).
+                            </li>
+                            <li><strong>Kamera Eksternal via USB Camera Pro (Android + Capture Card):</strong>
+                                <br>• Gunakan mode ini jika HP disambungkan ke Handycam/Camcorder/DSLR lewat HDMI to USB Capture Card.
+                                <br>• Di aplikasi USB Camera Pro, buka menu <strong>Live Streaming Settings</strong>.
+                                <br>• Pilih jenis protokol (SRT/RTMP), atur resolusi tangkapan UVC ke 720p/1080p, dan pastikan fitur <em>Network Buffer</em> di-disable agar tidak menumpuk delay di HP.
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="tutorial-step t-red">
+                        <h3>3️⃣ Tarik Sinyal ke OBS Studio (REAL-TIME NO DELAY)</h3>
+                        <ul>
+                            <li>Tambah <strong>Media Source</strong> baru di OBS, lalu <strong>hilangkan centang</strong> pada <em>Local File</em>.</li>
+                            <li>Masukkan link PULL SRT ke kolom Input. Tambahkan <code>&latency=0</code> atau <code>&latency=50</code> di paling akhir link.</li>
+                            <li><strong>KUNCI UTAMA:</strong> Ubah angka <em>Network Buffering</em> menjadi <code>0 MB</code>.</li>
+                            <li>Centang <em>Use hardware decoding</em> agar VGA/GPU laptop yang bekerja mengolah video.</li>
+                        </ul>
+                    </div>
+
+                    <div class="tutorial-step">
+                        <h3>4️⃣ Menampilkan Layar Preview Monitor</h3>
+                        <ul>
+                            <li>Klik <span class="highlight-text" style="color:var(--success);">🟢 Start Core Engine</span> lalu <span style="color:#0077ff;">🔄 START PREVIEWS</span>.</li>
+                            <li>Layar monitor di aplikasi ini sengaja dibuat dalam versi ringan (360p @20fps) agar CPU laptop tidak jebol. Tarikan di OBS Studio akan tetap masuk murni Full HD!</li>
+                        </ul>
+                    </div>
+
+                    <div class="tutorial-step t-blue">
+                        <h3>5️⃣ Fitur DVR Record & Auto-Save</h3>
+                        <ul>
+                            <li>Tekan ikon roda gigi ⚙️ di samping tombol DVR untuk mengatur Resolusi, FPS, dan Bitrate rekaman.</li>
+                            <li>Klik <strong>PILIH FOLDER</strong> untuk menentukan lokasi folder asli di Windows kamu.</li>
+                            <li>Nyalakan <strong>DVR AUTO-RECORD</strong> untuk otomatis merekam semua kamera saat sinyal memancar dari HP.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
     <script>
-        const { ipcRenderer, clipboard, shell } = require('electron');
+        const { ipcRenderer, clipboard } = require('electron');
         const os = require('os');
 
-        // ==========================================
-        // 1. KONTROL MODAL ALERT & CONFIRM
-        // ==========================================
-        function showCustomAlert(title, message, isSuccess, callback) {
-            const overlay = document.getElementById('custom-alert');
-            const box = document.getElementById('alertBox');
-            document.getElementById('alertTitle').innerText = title;
-            document.getElementById('alertMessage').innerText = message;
-            const btnEl = document.getElementById('alertBtn');
-            if (isSuccess) { box.classList.remove('error-mode'); btnEl.innerText = "Lanjut"; } 
-            else { box.classList.add('error-mode'); btnEl.innerText = "Coba Lagi"; }
-            overlay.classList.remove('hidden');
-            btnEl.onclick = () => { overlay.classList.add('hidden'); if (callback) callback(); };
-        }
+        // STATE MANAGER
+        let activeCams = 1; 
+        let isEngineActive = false;
+        let isReceivingStream = false;
+        let isAutoRecGlobal = false;
+        
+        let camStates = {
+            1: { active: false, lastBytes: 0, recording: false },
+            2: { active: false, lastBytes: 0, recording: false },
+            3: { active: false, lastBytes: 0, recording: false },
+            4: { active: false, lastBytes: 0, recording: false }
+        };
 
-        function showCustomConfirm(onConfirmCallback) {
-            const overlay = document.getElementById('custom-confirm');
-            overlay.classList.remove('hidden');
-            
-            const btnCancel = document.getElementById('btnCancelReset');
-            const btnConfirm = document.getElementById('btnConfirmReset');
-            
-            const newBtnCancel = btnCancel.cloneNode(true);
-            const newBtnConfirm = btnConfirm.cloneNode(true);
-            btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
-            btnConfirm.parentNode.replaceChild(newBtnConfirm, btnConfirm);
-            
-            newBtnCancel.onclick = () => { overlay.classList.add('hidden'); };
-            newBtnConfirm.onclick = () => { overlay.classList.add('hidden'); onConfirmCallback(); };
-        }
-
-        // ==========================================
-        // 2. VERIFIKASI & RESET LISENSI
-        // ==========================================
-        const licenseScreen = document.getElementById('license-screen');
-        if (localStorage.getItem('kb_license_active') === 'true') { licenseScreen.classList.add('hidden'); }
-
-        document.getElementById('activateBtn').addEventListener('click', async () => {
-            const key = document.getElementById('licenseKeyInput').value.trim().toUpperCase();
-            let tiktok = document.getElementById('tiktokInput').value.trim().toLowerCase();
-            if (tiktok.startsWith('@')) tiktok = tiktok.substring(1);
-            if (!key || !tiktok) return showCustomAlert("Gagal", "Username dan Kode tidak boleh kosong!", false);
-
-            document.getElementById('activateBtn').innerText = "Memverifikasi...";
-            document.getElementById('activateBtn').disabled = true;
-            try {
-                const result = await ipcRenderer.invoke('verify-license', { licenseKey: key, tiktokUser: tiktok });
-                if (result.success) {
-                    localStorage.setItem('kb_license_active', 'true');
-                    showCustomAlert("Berhasil", "Aktivasi berhasil!", true, () => licenseScreen.classList.add('hidden'));
-                } else {
-                    showCustomAlert("Gagal", result.message, false, () => {
-                        document.getElementById('activateBtn').innerText = "Verifikasi Lisensi";
-                        document.getElementById('activateBtn').disabled = false;
-                    });
-                }
-            } catch (err) {
-                showCustomAlert("Gagal", "Terjadi kesalahan server.", false, () => {
-                    document.getElementById('activateBtn').disabled = false;
-                    document.getElementById('activateBtn').innerText = "Verifikasi Lisensi";
-                });
-            }
-        });
-
-        document.getElementById('resetLicenseBtn').addEventListener('click', () => {
-            showCustomConfirm(() => {
-                localStorage.removeItem('kb_license_active');
-                location.reload();
+        // ==========================================================
+        // ANIMASI RIPPLE EFEK KLIK
+        // ==========================================================
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                let x = e.clientX - e.target.getBoundingClientRect().left;
+                let y = e.clientY - e.target.getBoundingClientRect().top;
+                let ripples = document.createElement('span');
+                ripples.style.left = x + 'px';
+                ripples.style.top = y + 'px';
+                ripples.classList.add('ripple');
+                this.appendChild(ripples);
+                setTimeout(() => { ripples.remove() }, 600);
             });
         });
 
-        // ==========================================
-        // 3. LOGIKA APLIKASI UTAMA
-        // ==========================================
-        let isReceivingStream = false;
-        let isEngineActive = false; 
+// ==========================================================
+        // INISIALISASI DOM SIAP & PINTU PILIHAN IP MANUAL (FIX DOUBLE & HOTSPOT)
+        // ==========================================================
+        let detectedLocalIp = '';
+        let detectedVpnIp = '';
+        let detectedHotspotIp = '';
+        let currentSelectedIp = '127.0.0.1';
 
-        document.getElementById('enterBtn').addEventListener('click', () => {
-            document.getElementById('splash-screen').classList.add('hidden'); resizeCanvas();
+        window.addEventListener('DOMContentLoaded', () => {
+            // 1. Pindai dan amankan semua IP yang aktif di laptop
+            for (const name in os.networkInterfaces()) {
+                for (const iface of os.networkInterfaces()[name]) {
+                    if (iface.family === 'IPv4' && !iface.internal) {
+                        if (iface.address.startsWith('100.')) {
+                            detectedVpnIp = iface.address; // IP Tailscale
+                        } else if (iface.address.startsWith('192.168.137.')) {
+                            detectedHotspotIp = iface.address; // IP Mobile Hotspot Windows Bawaan
+                        } else {
+                            // Filter IP WSL/Hyper-V (172.x) agar lebih mengutamakan Wi-Fi asli (192.168.x)
+                            if (!detectedLocalIp || !iface.address.startsWith('172.')) {
+                                detectedLocalIp = iface.address; 
+                            }
+                        }
+                    }
+                }
+            }
+
+            const ipModeSelect = document.getElementById('ipModeSelect');
+            
+            // 2. Tandai pilihan di menu dropdown jika ada jalur yang offline
+            if (!detectedVpnIp) ipModeSelect.options[0].text = "Tailscale VPN (Offline / Matikan)";
+            if (!detectedLocalIp) ipModeSelect.options[1].text = "Jaringan Lokal (Wi-Fi/LAN Offline)";
+            if (!detectedHotspotIp) ipModeSelect.options[2].text = "Mobile Hotspot Laptop (Offline)";
+
+            // 3. Tentukan pilihan awal otomatis (Utamakan Hotspot -> VPN -> Lokal)
+            if (detectedHotspotIp) {
+                ipModeSelect.value = 'hotspot';
+            } else if (detectedVpnIp) {
+                ipModeSelect.value = 'tailscale';
+            } else if (detectedLocalIp) {
+                ipModeSelect.value = 'lokal';
+            }
+
+            // 4. Fungsi sakti untuk merombak seluruh link secara real-time
+            function updateAppIpSettings() {
+                const mode = ipModeSelect.value;
+                const lbl = document.getElementById('ipLabel');
+                const ipDisplay = document.getElementById('ipAddress');
+
+                if (mode === 'tailscale') {
+                    currentSelectedIp = detectedVpnIp ? detectedVpnIp : '127.0.0.1';
+                    lbl.innerText = "TAILSCALE VPN NODE IP:";
+                    ipDisplay.style.color = "var(--accent)"; // Warna Cyan
+                } else if (mode === 'hotspot') {
+                    currentSelectedIp = detectedHotspotIp ? detectedHotspotIp : '127.0.0.1';
+                    lbl.innerText = "LAPTOP MOBILE HOTSPOT IP:";
+                    ipDisplay.style.color = "var(--danger)"; // Warna Merah Muda (Biar jelas)
+                } else {
+                    currentSelectedIp = detectedLocalIp ? detectedLocalIp : '127.0.0.1';
+                    lbl.innerText = "LOCAL NETWORK (WIFI/LAN) IP:";
+                    ipDisplay.style.color = "var(--accent3)"; // Warna Kuning
+                }
+
+                ipDisplay.innerText = currentSelectedIp;
+
+                // Perbarui otomatis isi link copy di 4 kartu kamera sekaligus
+                for(let i=1; i<=4; i++) {
+                    const hpRtmp = document.getElementById(`hpRtmp${i}`);
+                    const hpSrt = document.getElementById(`hpSrt${i}`);
+                    if(hpRtmp) hpRtmp.value = `rtmp://${currentSelectedIp}/irl${i}`;
+                    if(hpSrt) hpSrt.value = `srt://${currentSelectedIp}:8890`;
+                }
+            }
+
+            // 5. Pasang Event Listener
+            ipModeSelect.addEventListener('change', updateAppIpSettings);
+
+            // Jalankan fungsi bawaan sistem
+            initCameraCardsAndNames();
+            loadDvrSettings(); 
+            updateLayoutGrid(); 
+            
+            // Eksekusi update link di akhir
+            updateAppIpSettings(); 
         });
+        // ==========================================================
+        // DYNAMIC SWITCH LAYOUT MATRIX MONITOR
+        // ==========================================================
+        const matrixSelect = document.getElementById('matrixSelect');
+        const matrixContainer = document.getElementById('matrixContainer');
 
+        function updateLayoutGrid() {
+            activeCams = parseInt(matrixSelect.value);
+            matrixContainer.className = `video-matrix grid-layout-${activeCams}`;
+            
+            for(let i=1; i<=4; i++) {
+                const card = document.getElementById(`card-${i}`);
+                const slot = document.getElementById(`slot-${i}`);
+                const boxBit = document.getElementById(`boxBit-${i}`);
+                
+                if(i <= activeCams) {
+                    card.classList.add('visible');
+                    slot.classList.remove('slot-hidden');
+                    boxBit.classList.remove('slot-hidden');
+                } else {
+                    card.classList.remove('visible');
+                    slot.classList.add('slot-hidden');
+                    boxBit.classList.add('slot-hidden');
+                    document.getElementById(`previewIframe${i}`).src = "about:blank";
+                    document.getElementById(`previewIframe${i}`).style.opacity = "0";
+                    document.getElementById(`wait-${i}`).style.display = "block";
+                    document.getElementById(`wait-${i}`).innerText = "NO SIGNAL";
+                }
+            }
+            resizeCanvas();
+        }
+        matrixSelect.addEventListener('change', updateLayoutGrid);
+
+        // ==========================================================
+        // BUTTON KONTROL COPY & ENGINE CORE IPC
+        // ==========================================================
         document.querySelectorAll('.copy-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                clipboard.writeText(document.getElementById(btn.getAttribute('data-target')).innerText);
-                const orig = btn.innerText; btn.innerText = "COPIED!"; setTimeout(() => btn.innerText = orig, 2000);
+                clipboard.writeText(document.getElementById(btn.getAttribute('data-target')).value);
+                const originalText = btn.innerText; btn.innerText = "OK!";
+                setTimeout(() => btn.innerText = originalText, 1500);
             });
         });
-        document.getElementById('tiktokLink').addEventListener('click', () => shell.openExternal('https://www.tiktok.com/@kamar_broadcast')); 
 
-        const tsIp = (() => {
-            for (const name in os.networkInterfaces()) for (const iface of os.networkInterfaces()[name]) 
-                if (iface.family === 'IPv4' && iface.address.startsWith('100.')) return iface.address;
-            return '127.0.0.1';
-        })();
-        document.getElementById('ipAddress').innerText = tsIp !== '127.0.0.1' ? tsIp : "Tailscale Mati!";
-        document.getElementById('srtUrl').innerText = `srt://${tsIp}:8890`;
-        document.getElementById('srtStreamId').innerText = `#!::r=irl,m=publish`;
-
-        // ==========================================
-        // 4. CORE ENGINE & PREVIEW KONTROL (MANUAL)
-        // ==========================================
-        const coreBtn = document.getElementById('coreToggleBtn');
+        const coreToggleBtn = document.getElementById('coreToggleBtn');
         const reloadBtn = document.getElementById('reloadBtn');
         const stopPreviewBtn = document.getElementById('stopPreviewBtn');
         const netStatus = document.getElementById('netStatus');
 
-        coreBtn.addEventListener('click', () => {
-            if (isEngineActive) ipcRenderer.send('stop-core-engine'); 
+        coreToggleBtn.addEventListener('click', () => {
+            if (isEngineActive) ipcRenderer.send('stop-core-engine');
             else ipcRenderer.send('start-core-engine');
         });
 
         ipcRenderer.on('core-status', (event, active) => {
             isEngineActive = active;
-            if (isEngineActive) {
-                coreBtn.innerText = "🔴 Stop Core Engine"; coreBtn.className = "action-btn btn-core-toggle";
-                netStatus.innerText = "• STANDBY"; netStatus.className = "status standby";
+            if(active) {
+                coreToggleBtn.innerText = "🔴 Stop Core Engine"; coreToggleBtn.className = "btn-action btn-engine";
+                netStatus.innerText = "• SYSTEM STANDBY"; netStatus.style.color = "#ffcc00";
             } else {
-                coreBtn.innerText = "🟢 Start Core Engine"; coreBtn.className = "action-btn btn-core-toggle stopped";
-                netStatus.innerText = "• OFFLINE"; netStatus.className = "status"; 
-                triggerStopPreview();
+                coreToggleBtn.innerText = "🟢 Start Core Engine"; coreToggleBtn.className = "btn-action btn-engine stopped";
+                netStatus.innerText = "• SYSTEM OFFLINE"; netStatus.style.color = "#555";
+                triggerStopPreviewsAll();
             }
         });
 
         reloadBtn.addEventListener('click', () => {
-            if (!isEngineActive) return showCustomAlert("Peringatan", "Nyalakan Core Engine terlebih dahulu!", false);
-            reloadBtn.innerText = "⏳ Memproses...";
-            document.getElementById('tutorialOverlay').classList.remove('active'); 
-            document.getElementById('previewIframe').style.opacity = '1';
+            if(!isEngineActive) {
+                document.getElementById('alertTitle').innerText = "Akses Ditolak";
+                document.getElementById('alertMessage').innerText = "Nyalakan Core Engine Server terlebih dahulu sebelum mengaktifkan preview monitor!";
+                document.getElementById('custom-alert').classList.remove('hidden');
+                return;
+            }
             
-            ipcRenderer.send('start-preview');
-            setTimeout(() => { 
-                document.getElementById('waitingText').style.opacity = '0'; 
-                document.getElementById('previewIframe').src = "http://127.0.0.1:8889/preview/"; 
-                reloadBtn.innerText = "🔄 Reload Preview"; 
-                isReceivingStream = true; 
-                netStatus.innerText = "• RECEIVING STREAM"; netStatus.className = "status active";
-                stopPreviewBtn.disabled = false; stopPreviewBtn.className = "action-btn btn-stop-preview active";
-            }, 2500);
+            reloadBtn.innerText = "⏳ LOADING ENG...";
+            isReceivingStream = true;
+            netStatus.innerText = "• RECEIVING PRO MATRIX STREAM"; netStatus.style.color = "#00ffcc";
+            
+            for(let i=1; i<=activeCams; i++) {
+                ipcRenderer.send('start-preview', i);
+                const ifr = document.getElementById(`previewIframe${i}`);
+                const waitTxt = document.getElementById(`wait-${i}`);
+                waitTxt.innerText = "CONNECTING TUNNEL...";
+                
+                setTimeout(() => {
+                    if(isReceivingStream) {
+                        ifr.src = `http://127.0.0.1:8889/preview${i}/`;
+                        ifr.style.opacity = "1";
+                        waitTxt.style.display = "none";
+                    }
+                }, 3000);
+            }
+            
+            setTimeout(() => {
+                reloadBtn.innerText = "🔄 RELOAD MONITORS";
+                stopPreviewBtn.disabled = false; stopPreviewBtn.className = "btn-action btn-stop active";
+            }, 3200);
         });
 
-        stopPreviewBtn.addEventListener('click', () => { if (!stopPreviewBtn.disabled) triggerStopPreview(); });
+        stopPreviewBtn.addEventListener('click', () => { if(!stopPreviewBtn.disabled) triggerStopPreviewsAll(); });
 
-        function triggerStopPreview() {
-            isReceivingStream = false; ipcRenderer.send('stop-preview');
-            document.getElementById('previewIframe').src = "about:blank"; 
-            document.getElementById('waitingText').style.opacity = '1';
-            if (isEngineActive) { netStatus.innerText = "• STANDBY"; netStatus.className = "status standby"; } 
-            else { netStatus.innerText = "• OFFLINE"; netStatus.className = "status"; }
-            stopPreviewBtn.disabled = true; stopPreviewBtn.className = "action-btn btn-stop-preview"; reloadBtn.innerText = "🔄 Start Preview";
+        function triggerStopPreviewsAll() {
+            isReceivingStream = false;
+            ipcRenderer.send('stop-preview');
+            
+            for(let i=1; i<=4; i++) {
+                document.getElementById(`previewIframe${i}`).src = "about:blank";
+                document.getElementById(`previewIframe${i}`).style.opacity = "0";
+                document.getElementById(`wait-${i}`).style.display = "block";
+                document.getElementById(`wait-${i}`).innerText = "NO SIGNAL";
+            }
+            
+            if(isEngineActive) { netStatus.innerText = "• SYSTEM STANDBY"; netStatus.style.color = "#ffcc00"; }
+            else { netStatus.innerText = "• SYSTEM OFFLINE"; netStatus.style.color = "#555"; }
+            
+            stopPreviewBtn.disabled = true; stopPreviewBtn.className = "btn-action btn-stop";
+            reloadBtn.innerText = "🔄 START PREVIEWS";
         }
 
-        // ==========================================
-        // 5. ANIMASI GRAFIK & TELEMETRI API 
-        // ==========================================
-        let isStreamActiveInMediaMTX = false;
-        let lastBytesReceived = 0;
-        
+        // ==========================================================
+        // SHARE ALL LINKS TO WHATSAPP
+        // ==========================================================
+        document.getElementById('shareAllBtn').addEventListener('click', () => {
+            let listTeks = `*--- 🚀 IRL MULTICAM SYSTEM V1 PRO CONNECTIONS ---*\n*NODE NODE IP:* ${tsIp}\n\n`;
+            for(let i=1; i<=activeCams; i++) {
+                const name = document.getElementById(`cam${i}Name`).value;
+                listTeks += `📸 *CH ${i}: ${name.toUpperCase()}*\n`;
+                listTeks += `👉 _Jalur RTMP:_ rtmp://${tsIp}/irl${i}\n`;
+                listTeks += `👉 _Jalur SRT:_ srt://${tsIp}:8890\n`;
+                listTeks += `👉 _SRT Stream ID:_ #!::r=irl${i},m=publish\n`;
+                listTeks += `--------------------------------------------\n`;
+            }
+            clipboard.writeText(listTeks);
+            document.getElementById('alertTitle').innerText = "Berhasil Menyalin Teks";
+            document.getElementById('alertMessage').innerText = "Teks berformat rapi untuk grup WhatsApp Tim Produksi lapangan sudah siap dipaste!";
+            document.getElementById('custom-alert').classList.remove('hidden');
+        });
+
+        ipcRenderer.on('sys-stats', (e, stats) => {
+            document.getElementById('cpuVal').innerText = stats.cpu + "%";
+            document.getElementById('ramVal').innerText = stats.ram + "%";
+        });
+
+        // ==========================================================
+        // UI POP-UP SETTINGS DVR RECORD DENGAN FOLDER WINDOWS ASLI
+        // ==========================================================
+        const dvrModal = document.getElementById('dvr-settings-modal');
+        document.getElementById('openDvrSettingsBtn').addEventListener('click', () => { dvrModal.classList.remove('hidden'); });
+        document.getElementById('btnCancelDvr').addEventListener('click', () => { dvrModal.classList.add('hidden'); });
+
+        // Fungsi Memanggil Jendela Folder Windows
+        document.getElementById('btnBrowseFolder').addEventListener('click', async () => {
+            const folderPath = await ipcRenderer.invoke('select-folder');
+            if (folderPath) {
+                document.getElementById('dvrPath').value = folderPath;
+            }
+        });
+
+        function loadDvrSettings() {
+            if(localStorage.getItem('kb_dvr_res')) document.getElementById('dvrRes').value = localStorage.getItem('kb_dvr_res');
+            if(localStorage.getItem('kb_dvr_fps')) document.getElementById('dvrFps').value = localStorage.getItem('kb_dvr_fps');
+            if(localStorage.getItem('kb_dvr_bit')) document.getElementById('dvrBit').value = localStorage.getItem('kb_dvr_bit');
+            if(localStorage.getItem('kb_dvr_path')) document.getElementById('dvrPath').value = localStorage.getItem('kb_dvr_path');
+        }
+
+        document.getElementById('btnSaveDvr').addEventListener('click', () => {
+            localStorage.setItem('kb_dvr_res', document.getElementById('dvrRes').value);
+            localStorage.setItem('kb_dvr_fps', document.getElementById('dvrFps').value);
+            localStorage.setItem('kb_dvr_bit', document.getElementById('dvrBit').value);
+            localStorage.setItem('kb_dvr_path', document.getElementById('dvrPath').value);
+            dvrModal.classList.add('hidden');
+            
+            document.getElementById('alertTitle').innerText = "Pengaturan DVR Disimpan";
+            document.getElementById('alertMessage').innerText = "Resolusi, FPS, dan Bitrate berhasil disimpan. File akan mengarah ke:\n\n" + document.getElementById('dvrPath').value;
+            document.getElementById('custom-alert').classList.remove('hidden');
+        });
+
+        function toggleRecordChannel(camId) {
+            if(!isEngineActive) {
+                document.getElementById('alertTitle').innerText = "Peringatan DVR";
+                document.getElementById('alertMessage').innerText = "Silakan Start Core Engine terlebih dahulu untuk merekam!";
+                document.getElementById('custom-alert').classList.remove('hidden');
+                return;
+            }
+            camStates[camId].recording = !camStates[camId].recording;
+            const btn = document.getElementById(`recBtn-${camId}`);
+            
+            if(camStates[camId].recording) {
+                btn.classList.add('active-rec'); btn.innerText = "REC ON 🔴";
+            } else {
+                btn.classList.remove('active-rec'); btn.innerText = "DVR REC";
+            }
+            fetch(`http://127.0.0.1:9997/v3/config/paths/patch/irl${camId}`, {
+                method: 'PATCH', body: JSON.stringify({ record: camStates[camId].recording })
+            }).catch(e => console.log("Gagal simpan status DVR"));
+        }
+
+        const autoRecGlobalBtn = document.getElementById('autoRecGlobalBtn');
+        autoRecGlobalBtn.addEventListener('click', () => {
+            isAutoRecGlobal = !isAutoRecGlobal;
+            if(isAutoRecGlobal) {
+                autoRecGlobalBtn.innerText = "DVR AUTO-RECORD: ON 🔴"; autoRecGlobalBtn.style.borderColor = "var(--danger)"; autoRecGlobalBtn.style.color = "var(--danger)";
+            } else {
+                autoRecGlobalBtn.innerText = "DVR AUTO-RECORD: OFF"; autoRecGlobalBtn.style.borderColor = "#555"; autoRecGlobalBtn.style.color = "#aaa";
+            }
+        });
+
+        // ==========================================================
+        // SENSOR SAKTI: INDIKATOR AKTIF & SIMULASI SUARA VU METER
+        // ==========================================================
         setInterval(async () => {
-            if (!isEngineActive) { isStreamActiveInMediaMTX = false; return; }
+            if(!isEngineActive) {
+                for(let i=1; i<=4; i++) { camStates[i].active = false; }
+                renderVisualIndicators();
+                return;
+            }
             try {
                 const res = await fetch('http://127.0.0.1:9997/v3/paths/list');
                 const data = await res.json();
                 
-                const irlPath = data.items.find(item => item.name === 'irl');
-                if (irlPath) {
-                    let currentBytes = irlPath.bytesReceived || 0;
-                    if (irlPath.ready || irlPath.sourceReady || (currentBytes > lastBytesReceived)) {
-                        isStreamActiveInMediaMTX = true;
-                        lastBytesReceived = currentBytes;
+                for(let i=1; i<=4; i++) {
+                    const rpath = data.items.find(p => p.name === `irl${i}`);
+                    if(rpath) {
+                        let curBytes = rpath.bytesReceived || 0;
+                        if(rpath.ready || rpath.sourceReady || curBytes > camStates[i].lastBytes) {
+                            if(isAutoRecGlobal && !camStates[i].recording) { toggleRecordChannel(i); }
+                            camStates[i].active = true;
+                        } else {
+                            camStates[i].active = false;
+                        }
+                        camStates[i].lastBytes = curBytes;
                     } else {
-                        isStreamActiveInMediaMTX = false;
+                        camStates[i].active = false; camStates[i].lastBytes = 0;
                     }
-                } else {
-                    isStreamActiveInMediaMTX = false;
-                    lastBytesReceived = 0;
                 }
-            } catch(e) { isStreamActiveInMediaMTX = false; }
+            } catch(e) { for(let i=1; i<=4; i++) camStates[i].active = false; }
+            renderVisualIndicators();
         }, 1000);
 
-        const canvas = document.getElementById('networkChart');
-        const ctx = canvas.getContext('2d');
+        function renderVisualIndicators() {
+            for(let i=1; i<=4; i++) {
+                const ind = document.getElementById(`cam${i}Indicator`);
+                const inputNameVal = document.getElementById(`cam${i}Name`).value;
+                const badge = document.getElementById(`badge-${i}`);
+                const vuL = document.getElementById(`vu-${i}-L`);
+                const vuR = document.getElementById(`vu-${i}-R`);
+                
+                if(camStates[i].active) {
+                    if(ind) { ind.className = "cam-indicator on"; ind.innerText = "🟢 LIVE"; }
+                    if(badge) badge.innerText = "🟢 " + inputNameVal;
+                    
+                    if(vuL && vuR && isReceivingStream) {
+                        // Base volume: 30% sampai 80%
+                        let baseLevel = Math.floor(Math.random() * 50 + 30);
+                        // Peluang 20% untuk nendang mentok sampai 95-100% (Merah)
+                        if (Math.random() > 0.8) baseLevel = Math.floor(Math.random() * 15 + 85); 
+                        
+                        // Set nilai ke L dan R (Stereo beda tipis)
+                        vuL.style.height = baseLevel + "%";
+                        vuR.style.height = Math.max(0, baseLevel + (Math.random() * 14 - 7)) + "%"; 
+                    }
+                } else {
+                    if(ind) { ind.className = "cam-indicator off"; ind.innerText = "🔴 OFFLINE"; }
+                    if(badge) badge.innerText = "🔴 " + inputNameVal;
+                    if(vuL) vuL.style.height = "0%";
+                    if(vuR) vuR.style.height = "0%";
+                    if(camStates[i].recording) { toggleRecordChannel(i); } 
+                }
+            }
+        }
+
+        // ==========================================================
+        // MULTI LINE CANVAS TELEMETRY NETWORK GRAPH CHART
+        // ==========================================================
+        const canvas = document.getElementById('networkChart'); const ctx = canvas.getContext('2d');
         const container = document.getElementById('canvasContainer');
-        const bitrateTxt = document.getElementById('bitrateText');
-        let dataPoints = new Array(60).fill(0); const maxVal = 6000;
+        let dp1 = new Array(60).fill(0); let dp2 = new Array(60).fill(0);
+        let dp3 = new Array(60).fill(0); let dp4 = new Array(60).fill(0);
+        const maxV = 6000;
 
         function resizeCanvas() { canvas.width = container.clientWidth; canvas.height = container.clientHeight; }
         window.addEventListener('resize', resizeCanvas); setTimeout(resizeCanvas, 100);
 
         function drawChart() {
             if(canvas.width === 0) resizeCanvas();
-            let newValue = 0;
             
-            if (isReceivingStream && isEngineActive && isStreamActiveInMediaMTX) { 
-                newValue = Math.floor(Math.random() * (4500 - 2800 + 1) + 2800); 
-                bitrateTxt.innerText = (newValue).toLocaleString() + " kbps"; 
-                bitrateTxt.style.color = "#00ffcc"; 
-            } else { 
-                newValue = isEngineActive ? Math.floor(Math.random() * 30) : 0; 
-                bitrateTxt.innerText = "0.00 kbps"; 
-                bitrateTxt.style.color = "#666677"; 
-            }
-            
-            dataPoints.push(newValue); dataPoints.shift(); ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.strokeStyle = '#1e1e2b'; ctx.lineWidth = 1; ctx.beginPath();
-            for(let i = 1; i < 4; i++) { let y = (canvas.height / 4) * i; ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); }
-            for(let i = 1; i < 10; i++) { let x = (canvas.width / 10) * i; ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); }
-            ctx.stroke();
+            let v1 = (isReceivingStream && isEngineActive && camStates[1].active) ? Math.floor(Math.random()*1500+2800) : (isEngineActive && camStates[1].active ? 40 : 0);
+            let v2 = (isReceivingStream && isEngineActive && camStates[2].active) ? Math.floor(Math.random()*1500+2800) : (isEngineActive && camStates[2].active ? 40 : 0);
+            let v3 = (isReceivingStream && isEngineActive && camStates[3].active) ? Math.floor(Math.random()*1500+2800) : (isEngineActive && camStates[3].active ? 40 : 0);
+            let v4 = (isReceivingStream && isEngineActive && camStates[4].active) ? Math.floor(Math.random()*1500+2800) : (isEngineActive && camStates[4].active ? 40 : 0);
 
-            const stepX = canvas.width / (dataPoints.length - 1); ctx.beginPath();
-            let startY = canvas.height - (dataPoints[0] / maxVal) * canvas.height; ctx.moveTo(0, startY);
-            for(let i = 1; i < dataPoints.length; i++) {
-                let x = i * stepX; let y = canvas.height - (dataPoints[i] / maxVal) * canvas.height; let cpX = (x + (i - 1) * stepX) / 2;
-                ctx.bezierCurveTo(cpX, canvas.height - (dataPoints[i-1] / maxVal) * canvas.height, cpX, y, x, y);
-            }
-            ctx.strokeStyle = (isReceivingStream && isEngineActive && isStreamActiveInMediaMTX) ? '#00ffcc' : '#333344'; 
-            ctx.lineWidth = 2.5; ctx.shadowBlur = (isReceivingStream && isEngineActive && isStreamActiveInMediaMTX) ? 15 : 0; 
-            ctx.shadowColor = '#00ffcc'; ctx.stroke();
-            ctx.lineTo(canvas.width, canvas.height); ctx.lineTo(0, canvas.height); ctx.closePath();
+            document.getElementById('bitrate1').innerText = v1; document.getElementById('bitrate2').innerText = v2;
+            document.getElementById('bitrate3').innerText = v3; document.getElementById('bitrate4').innerText = v4;
+
+            dp1.push(v1); dp1.shift(); dp2.push(v2); dp2.shift();
+            dp3.push(v3); dp3.shift(); dp4.push(v4); dp4.shift();
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, (isReceivingStream && isEngineActive && isStreamActiveInMediaMTX) ? 'rgba(0, 255, 204, 0.25)' : 'rgba(50, 50, 70, 0.05)');
-            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            ctx.fillStyle = gradient; ctx.fill();
+            ctx.strokeStyle = '#161625'; ctx.lineWidth = 1; ctx.beginPath();
+            for(let i=1; i<4; i++) { let y = (canvas.height/4)*i; ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); }
+            for(let i=1; i<10; i++) { let x = (canvas.width/10)*i; ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); } ctx.stroke();
+
+            function drawSingleLine(dataPoints, color) {
+                const stepX = canvas.width / (dataPoints.length - 1);
+                ctx.beginPath();
+                ctx.moveTo(0, canvas.height - (dataPoints[0]/maxV)*canvas.height);
+                for(let i=1; i<dataPoints.length; i++) {
+                    let x = i*stepX; let y = canvas.height - (dataPoints[i]/maxV)*canvas.height;
+                    let cpX = (x + (i-1)*stepX)/2;
+                    ctx.bezierCurveTo(cpX, canvas.height - (dataPoints[i-1]/maxV)*canvas.height, cpX, y, x, y);
+                }
+                ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.shadowBlur = isReceivingStream ? 8 : 0; ctx.shadowColor = color; ctx.stroke();
+                ctx.shadowBlur = 0; 
+            }
+
+            if(activeCams >= 1) drawSingleLine(dp1, '#00ffcc');
+            if(activeCams >= 2) drawSingleLine(dp2, '#ff33cc');
+            if(activeCams >= 4) { drawSingleLine(dp3, '#ffff00'); drawSingleLine(dp4, '#00aaff'); }
         }
-        setInterval(drawChart, 300);
+        setInterval(drawChart, 330);
 
-        // ==========================================
-        // 6. BUKA TUTORIAL
-        // ==========================================
+        // ==========================================================
+        // SECURITY & AUXILIARY SCREEN SYSTEM MECHANISM
+        // ==========================================================
+        document.getElementById('alertBtn').onclick = () => document.getElementById('custom-alert').classList.add('hidden');
+        
+        if (localStorage.getItem('kb_license_active') === 'true') document.getElementById('license-screen').classList.add('hidden');
+        document.getElementById('activateBtn').addEventListener('click', async () => {
+            const key = document.getElementById('licenseKeyInput').value.trim().toUpperCase();
+            let tiktok = document.getElementById('tiktokInput').value.trim().toLowerCase();
+            if (tiktok.startsWith('@')) tiktok = tiktok.substring(1);
+            if (!key || !tiktok) return alert("Kolom data dilarang kosong!");
+            
+            try {
+                const res = await ipcRenderer.invoke('verify-license', { licenseKey: key, tiktokUser: tiktok });
+                if (res.success) { localStorage.setItem('kb_license_active', 'true'); document.getElementById('license-screen').classList.add('hidden'); } 
+                else alert(res.message);
+            } catch (e) { alert("Server Down / Gangguan Jaringan."); }
+        });
+
+        document.getElementById('resetLicenseBtn').addEventListener('click', () => {
+            document.getElementById('custom-confirm').classList.remove('hidden');
+            document.getElementById('btnCancelReset').onclick = () => document.getElementById('custom-confirm').classList.add('hidden');
+            document.getElementById('btnConfirmReset').onclick = () => { localStorage.removeItem('kb_license_active'); location.reload(); };
+        });
+
+        document.getElementById('enterBtn').onclick = () => { 
+            document.getElementById('splash-screen').classList.add('hidden'); 
+        };
+
+        // Buka / Tutup Buku Panduan Dengan Animasi 3D
         let isTutorialOpen = false;
         document.getElementById('tutorialBtn').addEventListener('click', () => {
-            isTutorialOpen = !isTutorialOpen; 
-            const overlay = document.getElementById('tutorialOverlay'); 
-            const iframe = document.getElementById('previewIframe'); 
+            isTutorialOpen = !isTutorialOpen;
+            const overlay = document.getElementById('tutorialOverlay');
             const btn = document.getElementById('tutorialBtn');
-            if (isTutorialOpen) { 
-                overlay.classList.add('active'); 
-                iframe.style.opacity = '0'; 
-                btn.innerText = "❌ Tutup Buku Panduan";
-                btn.style.color = "#fff";
-                btn.style.borderColor = "#fff";
-            } 
-            else { 
-                overlay.classList.remove('active'); 
-                iframe.style.opacity = '1'; 
-                btn.innerText = "📖 Buka Panduan Penggunaan";
-                btn.style.color = "#ffcc00";
-                btn.style.borderColor = "#ffcc00";
+            if(isTutorialOpen) {
+                overlay.classList.add('active'); btn.innerText = "❌ Tutup Buku Panduan"; btn.style.borderColor = "#fff"; btn.style.color = "#fff";
+            } else {
+                overlay.classList.remove('active'); btn.innerText = "📖 Buka Panduan Penggunaan"; btn.style.borderColor = "#a600ff"; btn.style.color = "#a600ff";
             }
         });
     </script>

@@ -4,151 +4,135 @@ const axios = require('axios');
 const { machineId } = require('node-machine-id');
 const { autoUpdater } = require('electron-updater');
 const { exec, spawn } = require('child_process');
+const os = require('os');
 
 let mainWindow;
-let mediamtxProcess;
-let ffmpegProcess;
+let mediamtxProcess = null;
+let ffmpegProcesses = { 1: null, 2: null, 3: null, 4: null };
 
-// ==========================================
-// 1. PENDETEKSI JALUR FILE & FOLDER KERJA (.exe)
-// ==========================================
 const workingDirectory = app.isPackaged ? process.resourcesPath : __dirname;
-
 const mediamtxPath = path.join(workingDirectory, 'mediamtx.exe');
 const ffmpegPath = path.join(workingDirectory, 'ffmpeg.exe');
 
-// ==========================================
-// 2. FUNGSI MEMBUAT JENDELA APLIKASI
-// ==========================================
 function createWindow() {
     mainWindow = new BrowserWindow({
-        width: 1280,
-        height: 720,
-        minWidth: 1000,
-        minHeight: 600,
-        title: "IRL SYSTEM V1 - Kamar Broadcast",
+        width: 1440, height: 850, minWidth: 1100, minHeight: 700,
+        title: "IRL SYSTEM V3 (QUAD CAM PRO) - Kamar Broadcast",
         icon: path.join(__dirname, 'icon.ico'),
-        webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false,
-            devTools: false
-        }
+        webPreferences: { nodeIntegration: true, contextIsolation: false, devTools: false }
     });
 
     mainWindow.removeMenu();
     mainWindow.loadFile('index.html');
     
-    // Blokir F12 / Inspect Element
     mainWindow.webContents.on('before-input-event', (event, input) => {
-        if (input.key === 'F12' || (input.control && input.shift && input.key.toLowerCase() === 'i')) {
-            event.preventDefault();
-        }
+        if (input.key === 'F12' || (input.control && input.shift && input.key.toLowerCase() === 'i')) event.preventDefault();
     });
+
+    setInterval(() => {
+        if (!mainWindow) return;
+        const totalMem = os.totalmem();
+        const freeMem = os.freemem();
+        const ramUsage = ((totalMem - freeMem) / totalMem * 100).toFixed(1);
+        
+        const cpus = os.cpus();
+        let cpuUsage = 0;
+        cpus.forEach(cpu => {
+            let total = 0;
+            for (let type in cpu.times) total += cpu.times[type];
+            cpuUsage += (100 - (100 * cpu.times.idle / total));
+        });
+        cpuUsage = (cpuUsage / cpus.length).toFixed(1);
+
+        mainWindow.webContents.send('sys-stats', { cpu: cpuUsage, ram: ramUsage });
+    }, 2000);
 }
 
-// ==========================================
-// 3. SIKLUS HIDUP APP (TANPA AUTO-START MESIN)
-// ==========================================
 app.whenReady().then(() => {
     createWindow();
     autoUpdater.checkForUpdatesAndNotify(); 
 });
 
 autoUpdater.on('update-available', () => {
-    dialog.showMessageBox({ type: 'info', title: 'Update Tersedia', message: 'Mengunduh update...' });
+    dialog.showMessageBox({ type: 'info', title: 'Update Tersedia', message: 'Versi terbaru terdeteksi! Mengunduh berkas update otomatis...' });
 });
+
 autoUpdater.on('update-downloaded', () => {
     dialog.showMessageBox({
-        type: 'question', buttons: ['Restart Sekarang', 'Nanti Saja'], defaultId: 0,
-        title: 'Update Siap', message: 'Restart aplikasi untuk memasang versi terbaru?'
+        type: 'question', buttons: ['Restart dan Pasang', 'Nanti Saja'], defaultId: 0,
+        title: 'Update Siap Pasang', message: 'Pembaruan sistem berhasil diunduh. Restart aplikasi sekarang untuk memasang versi terbaru?'
     }).then((res) => { if (res.response === 0) autoUpdater.quitAndInstall(); });
 });
 
-// ==========================================
-// 4. PEMBERSIH OTOMATIS SAAT APP DITUTUP
-// ==========================================
 app.on('window-all-closed', () => {
-    exec(`taskkill /IM mediamtx.exe /F`);
-    exec(`taskkill /IM ffmpeg.exe /F`);
+    Object.keys(ffmpegProcesses).forEach(id => { if (ffmpegProcesses[id]) ffmpegProcesses[id].kill('SIGKILL'); });
+    exec(`taskkill /IM mediamtx.exe /F`); exec(`taskkill /IM ffmpeg.exe /F`);
     if (process.platform !== 'darwin') app.quit();
 });
 
-// ==========================================
-// 5. VERIFIKASI LISENSI VERCEL
-// ==========================================
-ipcMain.handle('verify-license', async (event, data) => {
-    try {
-        let hwid = await machineId().catch(() => "HWID-KOSONG");
-        const VERCEL_URL = 'https://irl-license-server.vercel.app/api/verify';
-        const response = await axios.post(VERCEL_URL, {
-            license_key: data.licenseKey, hardware_id: hwid, tiktok_username: data.tiktokUser
-        });
-        return { success: true, message: response.data.message };
-    } catch (error) {
-        return { success: false, message: error.response?.data?.message || 'Gagal konek ke Server.' };
-    }
-});
-
-// ==========================================
-// 6. KONTROL MANUAL ENGINE & TRANSCODE
-// ==========================================
 ipcMain.on('start-core-engine', (event) => {
-    // Sapu bersih port yang nyangkut dulu
     exec(`taskkill /IM mediamtx.exe /F`, () => {
-        console.log("Menjalankan Core Engine (MediaMTX)...");
-        
-        // KUNCI FIX ERROR .EXE : Tambahkan { cwd: workingDirectory }
+        console.log("Membangun Jaringan Core Engine Server...");
         mediamtxProcess = exec(`"${mediamtxPath}"`, { cwd: workingDirectory }, (err) => {
-            if (err) console.error("Gagal MediaMTX:", err);
+            if (err) console.error("MediaMTX Crash / Berhenti:", err);
         });
-        
         event.reply('core-status', true);
     });
 });
 
 ipcMain.on('stop-core-engine', (event) => {
-    console.log("Mematikan Semua Engine...");
-    
-    if (ffmpegProcess) {
-        ffmpegProcess.kill('SIGKILL');
-        ffmpegProcess = null;
-    }
-    
-    // Matikan paksa MediaMTX dan FFmpeg
-    exec(`taskkill /IM mediamtx.exe /F`);
-    exec(`taskkill /IM ffmpeg.exe /F`);
-    mediamtxProcess = null;
-    
-    event.reply('core-status', false);
+    console.log("Mematikan Seluruh Jaringan Server Inti...");
+    Object.keys(ffmpegProcesses).forEach(id => {
+        if (ffmpegProcesses[id]) { ffmpegProcesses[id].kill('SIGKILL'); ffmpegProcesses[id] = null; }
+    });
+    exec(`taskkill /IM mediamtx.exe /F`); exec(`taskkill /IM ffmpeg.exe /F`);
+    mediamtxProcess = null; event.reply('core-status', false);
 });
 
-ipcMain.on('start-preview', (event) => {
-    if (ffmpegProcess) {
-        ffmpegProcess.kill('SIGKILL');
-    }
-    console.log("Transcoding HEVC ke H.264 untuk Preview...");
+// ==========================================================
+// 6. MANAJEMEN PREVIEW (PRIORITAS RENDAH - KHUSUS PREVIEW 360P)
+// ==========================================================
+ipcMain.on('start-preview', (event, camId) => {
+    if (ffmpegProcesses[camId]) ffmpegProcesses[camId].kill('SIGKILL');
+
+    console.log(`Membuat Jalur Preview Ringan (360p) untuk Kamera ${camId}...`);
     
+    // FFmpeg diringankan secara ekstrem agar CPU fokus untuk OBS!
     const ffmpegArgs = [
         '-rtsp_transport', 'tcp',
-        '-i', 'rtsp://127.0.0.1:8554/irl',  
+        '-i', `rtsp://127.0.0.1:8554/irl${camId}`,
         '-c:v', 'libx264',
         '-preset', 'ultrafast',
         '-tune', 'zerolatency',
-        '-s', '854x480',
-        '-b:v', '500k',
-        '-c:a', 'copy',
+        '-s', '640x360',        // Resolusi Preview dikunci 360p
+        '-r', '20',             // FPS Preview diturunkan ke 20
+        '-b:v', '250k',         // Bitrate khusus Preview ditekan seminimal mungkin
+        '-an',                  // Tanpa audio
         '-f', 'rtsp',
         '-rtsp_transport', 'tcp',
-        'rtsp://127.0.0.1:8554/preview'
+        `rtsp://127.0.0.1:8554/preview${camId}`
     ];
-    
-    // Pastikan FFmpeg juga memakai working directory yang sama
-    ffmpegProcess = spawn(ffmpegPath, ffmpegArgs, { cwd: workingDirectory });
+
+    ffmpegProcesses[camId] = spawn(ffmpegPath, ffmpegArgs, { cwd: workingDirectory });
 });
 
 ipcMain.on('stop-preview', (event) => {
-    if (ffmpegProcess) {
-        ffmpegProcess.kill('SIGKILL');
-        ffmpegProcess = null;
-    }
+    Object.keys(ffmpegProcesses).forEach(id => {
+        if (ffmpegProcesses[id]) { ffmpegProcesses[id].kill('SIGKILL'); ffmpegProcesses[id] = null; }
+    });
+});
+
+ipcMain.handle('verify-license', async (event, data) => {
+    try {
+        let hwid = await machineId().catch(() => "HWID-KOSONG");
+        const VERCEL_URL = 'https://irl-license-server.vercel.app/api/verify';
+        const response = await axios.post(VERCEL_URL, { license_key: data.licenseKey, hardware_id: hwid, tiktok_username: data.tiktokUser });
+        return { success: true, message: response.data.message };
+    } catch (error) { return { success: false, message: error.response?.data?.message || 'Gagal tersambung ke Server Lisensi.' }; }
+});
+
+ipcMain.handle('select-folder', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, { title: "Pilih Folder Penyimpanan Rekaman (DVR)", properties: ['openDirectory', 'createDirectory'] });
+    if (!result.canceled && result.filePaths.length > 0) return result.filePaths[0]; 
+    return null;
 });
